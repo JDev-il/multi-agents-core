@@ -158,3 +158,29 @@ When executing a task from `TASK.md`, operate in fully autonomous mode:
 - **Do not stop** to ask for plan confirmation unless a destructive action is detected
 - **Do not interrupt** the agentic flow with clarifying questions unless the task
   is genuinely ambiguous after reading all available context files
+
+## Implicit Task Clarity Rule
+
+This rule applies to ALL agents and overrides individual Pre-flight Check 1 strictness.
+
+Before flagging a task as ambiguous, the agent must first attempt to derive intent from:
+
+1. **Agent domain** - what this agent is responsible for (UI = components/layout, LOGIC = state/API, etc.)
+2. **@config values** - the confirmed stack defines what to build and how
+3. **BUILD_STATE.md** - current project state defines what exists and what's next
+4. **Scope** - the worktree scope (.claude-scope) defines the boundary
+
+If all four sources together make the intent clear - proceed autonomously.
+Only flag for clarification if the task remains genuinely ambiguous AFTER reading all four.
+
+**Examples of implicitly clear tasks:**
+- UI agent + empty client/ + full @config + "build the ui" → scaffold the configured stack
+- LOGIC agent + scaffold done + STATE: Zustand + "set up state" → implement Zustand stores
+- TESTING agent + framework set + "set up tests" → configure test runner for the framework
+- ROUTING agent + scaffold done + "set up routing" → configure App Router / routing conventions
+- FORMS agent + LOGIC done + "build forms" → implement form architecture with configured libraries
+
+**Examples that still require clarification:**
+- "build the ui" with no @config set → framework unknown, cannot proceed
+- "add a component" with no description → which component, what purpose
+- Any task touching another agent's domain → flag and redirect
