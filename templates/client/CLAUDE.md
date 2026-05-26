@@ -149,18 +149,12 @@ Awaiting  : confirmation it exists in the environment
 
 ## Scaffolding Into Existing Directories
 
-When any agent initializes a framework into `client/`, the directory already
-contains coordination files (`CLAUDE.md`, `agents/`). These must always be preserved.
-
-**Always scaffold directly into `client/` using:**
-
-- Next.js  : `npx create-next-app@latest . --yes --skip-install`
-- Nuxt     : `npx nuxi init . --force`
-- SvelteKit: `npx sv create . --force`
-- Remix    : `npx create-remix@latest . --yes`
+When initializing a framework into `client/`, the directory already contains
+`CLAUDE.md` and `agents/`. These must always be preserved.
 
 **Rules:**
-- Never create temp directories (no client-temp/, no tmp/, nothing)
+- Never use CLI scaffold tools (create-next-app, nuxi, etc.) — they refuse non-empty directories
+- Always create the project structure manually: package.json, tsconfig.json, config files, src/ folders
+- Never create temp directories of any kind
 - Never overwrite or delete `CLAUDE.md` or `agents/`
-- If any extra folders exist from previous runs — delete them before starting
-- Verify `CLAUDE.md` and `agents/` still exist after scaffolding
+- Delete any leftover temp folders from previous runs before starting
