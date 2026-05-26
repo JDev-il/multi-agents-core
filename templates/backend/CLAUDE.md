@@ -137,3 +137,19 @@ Awaiting  : confirmation it exists in the environment
 - Always write back confirmed config values before proceeding
 - Never write to `client/`, `shared/`, or `CONTRACTS.md` unilaterally
 - Surface best-practice observations once - never loop on them
+
+---
+
+## Scaffolding Into Existing Directories
+
+When any agent initializes a framework or installs dependencies into `backend/`,
+the directory already contains coordination files (`CLAUDE.md`, `agents/`).
+
+Rules:
+- Never overwrite or delete `CLAUDE.md` or `agents/`
+- When using framework CLI tools (e.g. nest new, django-admin startproject),
+  use the appropriate flags or scaffold into a temp directory first,
+  then move generated files into `backend/` preserving existing files
+- If a conflict is detected - resolve by moving generated files manually,
+  never by deleting coordination files
+- Verify `CLAUDE.md` and `agents/` still exist after any scaffold operation
