@@ -158,3 +158,7 @@ When initializing a framework into `client/`, the directory already contains
 - Never create temp directories of any kind
 - Never overwrite or delete `CLAUDE.md` or `agents/`
 - Delete any leftover temp folders from previous runs before starting
+- Always create `client/.gitignore` as part of the scaffold containing at minimum:
+  node_modules/, .env*.local, and the framework's build output folder
+  (e.g. .next/ for Next.js, dist/ for Vite/Angular, .nuxt/ for Nuxt, 
+  .svelte-kit/ for SvelteKit, .remix/ for Remix)
