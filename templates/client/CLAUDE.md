@@ -155,8 +155,18 @@ the directory already contains coordination files (`CLAUDE.md`, `agents/`).
 Rules:
 - Never overwrite or delete `CLAUDE.md` or `agents/`
 - When using framework CLI tools (e.g. create-next-app, ng new, nuxi init),
-  use the `--yes` flag or scaffold into a temp directory first,
-  then move generated files into `client/` preserving existing files
+  scaffold into a temp directory first (e.g. `client-temp/`),
+  then move ALL generated files into `client/` preserving existing files
+- After moving files - ALWAYS delete the temp directory completely:
+  `rm -rf client-temp` or equivalent
+- Never leave temp directories behind - verify they are removed before proceeding
 - If a conflict is detected - resolve by moving generated files manually,
   never by deleting coordination files
 - Verify `CLAUDE.md` and `agents/` still exist after any scaffold operation
+- Verify NO temp directories remain after scaffold operation
+
+Temp directory cleanup checklist:
+- [ ] All files moved from temp to client/
+- [ ] Temp directory deleted (rm -rf)
+- [ ] client/ structure verified correct
+- [ ] CLAUDE.md and agents/ still present
