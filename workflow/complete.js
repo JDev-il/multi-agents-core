@@ -2,17 +2,17 @@
 
 /**
  * Multi-Agent Monorepo Template - Task Completion
- * Run with: npm run complete
+ * Run with: node .workflow/complete.js
  *
  * Merges the current task branch into main,
  * updates BUILD_STATE.md, and pushes to origin.
  * Run from the repo root after a task is complete.
  */
 
-const readline     = require('readline');
-const fs           = require('fs');
-const path         = require('path');
-const { execSync } = require('child_process');
+const readline          = require('readline');
+const fs                = require('fs');
+const path              = require('path');
+const { execSync, spawn } = require('child_process');
 
 // ── Colors ────────────────────────────────────────────────────────────────────
 
@@ -43,7 +43,7 @@ const LOCK_PATH   = path.join(ROOT, '.scaffold', '.initialized');
 
 if (!fs.existsSync(LOCK_PATH)) {
   console.log(`\n${red('  Project not initialized.')}`);
-  console.log(dim('  Run npm run init first.\n'));
+  console.log(dim('  Run node .scaffold/init.js first.\n'));
   process.exit(1);
 }
 
@@ -133,7 +133,7 @@ const main = async () => {
 
   if (worktrees.length === 0) {
     console.log(`\n${yellow('  No active task worktrees found.')}`);
-    console.log(dim('  Run npm run launch to start a task.\n'));
+    console.log(dim('  Run node .workflow/launch.js to start a task.\n'));
     rl.close();
     return;
   }
@@ -284,7 +284,7 @@ const main = async () => {
   console.log(`  ${dim('Branch')} ${green(branchName)} merged into ${green('main')}\n`);
   console.log(`  ${bold('What to do next:')}\n`);
   console.log(`  Start a new task:`);
-  console.log(`  ${cyan('npm run launch')}\n`);
+  console.log(`  ${cyan('node .workflow/launch.js')}\n`);
   separator();
   console.log('');
 
