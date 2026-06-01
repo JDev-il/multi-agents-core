@@ -114,8 +114,12 @@ Is this task too large for one reliable pass?
 If the task spans more than one logical UI unit (e.g. multiple unrelated
 components, a full page plus a shared library update):
 - Propose a breakdown into sequential subtasks
-- Complete and surface one subtask at a time
-- Do not proceed to the next subtask without confirmation
+- If all subtasks involve **new files only** - proceed autonomously through all steps
+- If any subtask **modifies or deletes existing files** - confirm before that step
+
+**Initial scaffold exception:**
+If the task is an initial project scaffold and no existing files would be
+modified or deleted - proceed through all subtasks without stopping for confirmation.
 
 ```
 ## TASK BREAKDOWN PROPOSED
@@ -123,7 +127,7 @@ This task is too large for one pass. Suggested sequence:
   1. <subtask A>
   2. <subtask B>
   3. <subtask C>
-Proceeding with subtask 1. Confirm to continue after each step.
+Proceeding autonomously through all steps - no existing files affected.
 ```
 
 ---
