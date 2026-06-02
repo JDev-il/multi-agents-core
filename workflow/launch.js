@@ -131,6 +131,24 @@ const SCAFFOLD_REQUIRED = ['LOGIC', 'FORMS', 'ROUTING', 'TESTING', 'ACCESSIBILIT
 // Agents that depend on shared contracts (CONTRACTS.md)
 const CONTRACTS_REQUIRED = ['LOGIC', 'AUTH', 'API', 'FORMS'];
 
+// Prerequisite agents that must be COMPLETED before an agent can run
+const AGENT_PREREQUISITES = {
+  client: {
+    LOGIC:         ['UI'],
+    FORMS:         ['UI'],
+    ROUTING:       ['UI'],
+    TESTING:       ['UI', 'LOGIC'],
+    ACCESSIBILITY: ['UI'],
+  },
+  backend: {
+    LOGIC:         ['DB'],
+    AUTH:          ['LOGIC'],
+    EVENTS:        ['API'],
+    JOBS:          ['DB'],
+    TESTING:       ['API', 'LOGIC'],
+  },
+};
+
 const DOD_ITEMS = {
   UI:            ['All planned components exist and render correctly', 'No business logic inside components', 'All values derive from design tokens', 'Shared types consumed from CONTRACTS.md'],
   LOGIC:         ['All planned logic units exist and function correctly', 'No API calls outside the service layer', 'All response types from CONTRACTS.md', 'State and data fetching concerns separated'],
@@ -533,6 +551,29 @@ const main = async () => {
       console.log(dim(`  Run the UI agent first to scaffold the project structure.\n`));
       rl.close();
       return;
+    }
+  }
+
+  // Prerequisite agent check — verify required predecessors are COMPLETED
+  const prereqs = (AGENT_PREREQUISITES[project] || {})[agent] || [];
+  if (prereqs.length > 0) {
+    const missing = prereqs.filter(req =>
+      !buildEntries.some(e => e.scope === project && e.agent === req && e.status === 'COMPLETED')
+    );
+    if (missing.length > 0) {
+      console.log(`\n${yellow(`  ⚠ ${agent} agent has unmet prerequisites:`)}\n`);
+      missing.forEach(req => {
+        const entry = buildEntries.find(e => e.scope === project && e.agent === req);
+        const status = entry ? yellow(entry.status) : red('NOT STARTED');
+        console.log(`  ${dim('→')} ${bold(`${project} / ${req}`)}  ${dim('|')}  ${status}`);
+      });
+      console.log('');
+      const proceed = await ask(`  ${bold('Proceed anyway?')} ${dim('(y/n)')}: `);
+      if (proceed.toLowerCase() !== 'y') {
+        console.log(yellow('\n  Aborted. Complete prerequisites first.\n'));
+        rl.close();
+        return;
+      }
     }
   }
 

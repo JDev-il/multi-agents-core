@@ -241,6 +241,14 @@ After each service:
 
 ## Safety Rules
 
+- **No `.tsx` or `.jsx` files** — backend LOGIC agent never creates UI or
+  controller-layer code. Services are HTTP-agnostic. If an endpoint needs
+  new service logic, create the service and stop. The API agent wires it
+  into the controller. This is the explicit handoff boundary:
+  ```
+  LOGIC agent creates  →  services/feature.service.ts
+  API agent consumes   →  controllers/feature.controller.ts calls FeatureService
+  ```
 - Never implement HTTP or request/response logic inside a service
 - Never write database queries directly in a service - delegate to DB layer
 - Never redefine types that belong in `shared/` - use `CONTRACTS.md`

@@ -148,6 +148,43 @@ the agent must:
 Do not wait for explicit instructions.
 The presence of `TASK.md` in the worktree is the instruction.
 
+## Build State Protocol
+
+Before any task begins, read `BUILD_STATE.md` and verify that all required
+predecessor agents for your scope have `COMPLETED` status.
+
+| Agent | Requires COMPLETED |
+|-------|-------------------|
+| `client / UI` | — (entry point, no prerequisites) |
+| `client / LOGIC` | `client / UI` |
+| `client / FORMS` | `client / UI` |
+| `client / ROUTING` | `client / UI` |
+| `client / TESTING` | `client / UI` + `client / LOGIC` |
+| `client / ACCESSIBILITY` | `client / UI` |
+| `backend / DB` | — (entry point, no prerequisites) |
+| `backend / API` | — (no hard prerequisites) |
+| `backend / LOGIC` | `backend / DB` |
+| `backend / AUTH` | `backend / LOGIC` |
+| `backend / EVENTS` | `backend / API` |
+| `backend / JOBS` | `backend / DB` |
+| `backend / TESTING` | `backend / API` + `backend / LOGIC` |
+| `shared / SECURITY` | — (no hard prerequisites) |
+
+If a required predecessor is missing or `IN PROGRESS`:
+
+```
+## PREREQUISITE NOT MET
+Cannot proceed with <agent> task.
+Required:  <predecessor agent> — status: <current status>
+Reason:    <why this agent depends on the predecessor>
+Options:
+  1. Complete the prerequisite task first
+  2. Confirm to proceed anyway with acknowledged risk
+```
+
+Surface this before reading TASK.md or writing any code.
+Proceed only after explicit human confirmation.
+
 ## Autonomy Rules
 
 When executing a task from `TASK.md`, operate in fully autonomous mode:

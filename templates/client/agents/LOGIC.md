@@ -231,6 +231,13 @@ After each unit:
 
 ## Safety Rules
 
+- **No `.tsx` or `.jsx` files** — LOGIC agent never creates UI components. If state
+  needs to be wired into a component, create the hook and stop. The UI agent updates
+  the component to consume it. This is the explicit handoff boundary:
+  ```
+  LOGIC agent creates  →  hooks/useFeature.ts, store/featureStore.ts
+  UI agent consumes    →  components/Feature.tsx calls useFeature()
+  ```
 - Never place API calls inside components, pages, or templates
 - Never redefine types that belong in `shared/` - use `CONTRACTS.md`
 - Never bundle unrelated logic into a single store, hook, or service
