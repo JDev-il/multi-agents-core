@@ -223,7 +223,60 @@ const parseBuildState = () => {
   return entries;
 };
 
-// ── Contracts check ───────────────────────────────────────────────────────────
+// ── Active worktree branches ──────────────────────────────────────────────────
+
+const getActiveWorktreeBranches = () => {
+  try {
+    const output = execSync('git worktree list --porcelain', { cwd: ROOT, stdio: 'pipe' }).toString();
+    const branches = [];
+    for (const line of output.split('\n')) {
+      if (line.startsWith('branch ')) {
+        branches.push(line.replace('branch refs/heads/', '').trim());
+      }
+    }
+    return branches;
+  } catch { return []; }
+};
+
+// ── Stale worktree reconciliation ─────────────────────────────────────────────
+
+const reconcileStaleWorktrees = (entries) => {
+  const activeBranches = getActiveWorktreeBranches();
+  const stale = entries.filter(e =>
+    e.status === 'IN PROGRESS' &&
+    e.branch &&
+    !activeBranches.includes(e.branch)
+  );
+
+  if (stale.length === 0) return entries;
+
+  const buildStatePath = path.join(ROOT, 'BUILD_STATE.md');
+  let content = fs.readFileSync(buildStatePath, 'utf8');
+
+  stale.forEach(e => {
+    content = content.replace(
+      `| IN PROGRESS | ${e.branch} |`,
+      `| STALE       | ${e.branch} |`
+    );
+    // Clean up remote branch
+    try {
+      execSync(`git push origin --delete ${e.branch}`, { cwd: ROOT, stdio: 'pipe' });
+    } catch { /* branch may not exist remotely — silent */ }
+    console.log(`  ${yellow('!')} Stale entry cleaned up: ${bold(e.agent)} (${dim(e.branch)}) → ABANDONED`);
+  });
+
+  fs.writeFileSync(buildStatePath, content, 'utf8');
+
+  try {
+    execSync('git add BUILD_STATE.md', { cwd: ROOT, stdio: 'pipe' });
+    execSync('git commit -m "build: reconcile stale worktree entries"', { cwd: ROOT, stdio: 'pipe' });
+  } catch { /* best-effort */ }
+
+  // Return updated entries
+  return entries.map(e =>
+    stale.find(s => s.branch === e.branch) ? { ...e, status: 'STALE' } : e
+  );
+};
 
 const checkContracts = () => {
   const p = path.join(ROOT, 'CONTRACTS.md');
@@ -487,7 +540,8 @@ const main = async () => {
 
   // ── Project status snapshot ───────────────────────────────────────────────────
 
-  const buildEntries = parseBuildState();
+  const rawEntries   = parseBuildState();
+  const buildEntries = reconcileStaleWorktrees(rawEntries);
   const contracts    = checkContracts();
   displayProjectStatus(buildEntries, contracts);
 
