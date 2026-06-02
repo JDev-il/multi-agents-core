@@ -536,16 +536,25 @@ const main = async () => {
     }
   }
 
-  // Contracts soft gate — LOGIC / AUTH / API / FORMS require shared contracts
+  // Contracts inform + agent-assist offer
+  let contractsNote = '';
+
   if (CONTRACTS_REQUIRED.includes(agent) && !contracts.hasContent) {
-    console.log(`\n${yellow(`  ⚠ ${agent} agent depends on shared contracts.`)}`);
-    console.log(dim('  CONTRACTS.md appears empty — no types or DTOs defined yet.'));
-    console.log(dim('  Recommended: run shared scope first to establish contracts.\n'));
-    const proceed = await ask(`  ${bold('Proceed anyway?')} ${dim('(y/n)')}: `);
-    if (proceed.toLowerCase() !== 'y') {
-      console.log(yellow('\n  Aborted. Run shared/SECURITY agent first.\n'));
-      rl.close();
-      return;
+    console.log(`\n${yellow('  ℹ CONTRACTS.md is empty')} ${dim('— no shared types or DTOs defined yet.')}\n`);
+    const assist = await ask(`  ${bold('Would you like the agent to establish contracts for your app?')} ${dim('(y/n)')}: `);
+
+    if (assist.toLowerCase() === 'y') {
+      contractsNote = 'Before implementing, identify and define the required shared contracts, types, and interfaces in CONTRACTS.md first. Base them on the task context and any existing code structure.';
+      console.log(dim('\n  ✓ Agent will establish contracts as the first step.\n'));
+    } else {
+      console.log(dim('\n  You can define the structure here, or the agent will adapt based on what it builds.'));
+      const manual = await ask(`  ${bold('Provide contract structure')} ${dim('(or press Enter to skip)')}: \n  → `);
+      if (manual.trim()) {
+        contractsNote = `Contract structure provided by user:\n${manual.trim()}\nUse this as the basis for CONTRACTS.md before implementing.`;
+        console.log(dim('  ✓ Contract structure noted.\n'));
+      } else {
+        console.log(dim('  Agent will proceed and flag type assumptions as it builds.\n'));
+      }
     }
   }
 
@@ -587,6 +596,11 @@ const main = async () => {
     contextSection = generateContextSection(answers, skipped);
   }
 
+  // Append contracts note if agent-assist was requested
+  if (contractsNote) {
+    contextSection += `\n---\n\n## Contracts Instruction\n\n${contractsNote}\n`;
+  }
+
   separator();
 
   // ── Confirm ───────────────────────────────────────────────────────────────────
@@ -608,6 +622,9 @@ const main = async () => {
   }
   if (skipped.length > 0) {
     console.log(`  ${dim('Skipped')}  : ${yellow(skipped.length + ' field(s) acknowledged')}`);
+  }
+  if (contractsNote) {
+    console.log(`  ${dim('Contracts')}: ${green('agent will establish first')}`);
   }
   console.log('');
 
