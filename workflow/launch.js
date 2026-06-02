@@ -69,48 +69,32 @@ if (normalizedCwd !== normalizedRoot) {
   process.exit(1);
 }
 
-// ── OS & IDE detection ────────────────────────────────────────────────────────
+// ── IDE gate ──────────────────────────────────────────────────────────────────
 
-const platform = process.platform;
+if (!config.ide) {
+  console.log(`\n${red('  IDE not configured.')}`);
+  console.log(dim('  Run npm run init to configure your IDE preference.\n'));
+  process.exit(1);
+}
 
-const detectIDE = () => {
-  const ides = [
-    { cmd: 'code',     label: 'VS Code'  },
-    { cmd: 'cursor',   label: 'Cursor'   },
-    { cmd: 'webstorm', label: 'WebStorm' },
-  ];
-
-  const which = platform === 'win32' ? 'where' : 'which';
-
-  for (const ide of ides) {
-    try {
-      execSync(`${which} ${ide.cmd}`, { stdio: 'pipe' });
-      return ide;
-    } catch {
-      continue;
-    }
-  }
-  return null;
-};
+// ── Open IDE ──────────────────────────────────────────────────────────────────
 
 const openIDE = (worktreePath) => {
-  const ide = detectIDE();
+  const { cmd, label } = config.ide;
+
+  // Manual / Other — no auto-open
+  if (!cmd) return null;
 
   try {
+    const platform = process.platform;
     if (platform === 'darwin') {
-      if (ide) {
-        execSync(`"${ide.cmd}" --new-window "${worktreePath}"`, { stdio: 'pipe' });
-      } else {
-        execSync(`open -a "Visual Studio Code" "${worktreePath}"`, { stdio: 'pipe' });
-      }
+      execSync(`"${cmd}" --new-window "${worktreePath}"`, { stdio: 'pipe' });
     } else if (platform === 'win32') {
-      const cmd = ide ? ide.cmd : 'code';
       execSync(`start "" "${cmd}" "${worktreePath}"`, { stdio: 'pipe' });
     } else {
-      const cmd = ide ? ide.cmd : 'code';
       execSync(`${cmd} --new-window "${worktreePath}"`, { stdio: 'pipe' });
     }
-    return ide ? ide.label : 'VS Code';
+    return label;
   } catch {
     return null;
   }
