@@ -28,7 +28,21 @@ Is the task specific enough to act on?
 - Identify: what triggers it and what it produces
 - Identify: which components or other logic units depend on it
 
-If any of these cannot be determined from the task as given:
+**If TASK.md contains an Agent Context section:**
+Read it before assessing clarity. Provided fields reduce or eliminate clarification
+rounds. Missing fields (marked ⚠) must be surfaced as explicit assumptions before
+proceeding — never guess silently:
+
+```
+## INCOMPLETE CONTEXT - ASSUMPTIONS DECLARED
+The following context was not provided. Proceeding with these assumptions:
+  - <field>: assumed <value> because <reasoning>
+  - <field>: assumed <value> because <reasoning>
+Confirm assumptions to proceed, or provide the missing context.
+```
+
+If any of the core clarity criteria cannot be determined from the task AND the Agent
+Context section:
 ```
 ## CLARIFICATION NEEDED - [Round 1 or 2]
 The following is unclear:
@@ -91,6 +105,24 @@ Does this task consume or produce types that cross the client/backend boundary?
 - If yes → verify the relevant types exist in `CONTRACTS.md`
 - If types are missing → stop and emit a CONTRACTS CHANGE PROPOSAL
 - Never redefine shared types locally inside a store, hook, or service
+
+**Classify every type before creating it:**
+
+| Scope | Definition | Action |
+|-------|-----------|--------|
+| **Local** | Used only within this client feature or component | Define locally in a feature-level types file |
+| **Shared** | Crosses the client/backend boundary, OR represents a domain entity (User, Order, etc.), OR is consumed by more than one scope | Emit a CONTRACTS CHANGE PROPOSAL — do not define locally |
+| **Uncertain** | Cannot be clearly classified from available context | Default to shared scope — propose via CONTRACTS CHANGE PROPOSAL |
+
+```
+## CONTRACTS CHANGE PROPOSAL
+Type classification: SHARED
+The following types are required and do not exist in CONTRACTS.md:
+  - <TypeName>: <description and shape>
+  - <TypeName>: <description and shape>
+Reason: <why these cross the boundary or represent a domain entity>
+Awaiting approval to add these to CONTRACTS.md before proceeding.
+```
 
 ### 5. Destructive Action Check
 
@@ -170,6 +202,10 @@ explore → summarize → plan → execute → validate
 ```
 
 **Explore**
+Read `TASK.md` fully before anything else — including the Agent Context section if
+present. Provided context (entities, endpoints, state, contracts) directly informs
+the explore pass. Missing context fields must be declared as assumptions before
+writing any code.
 Read existing state units, API client, and service layer before writing anything.
 Understand current patterns, naming, and data flow.
 
@@ -209,8 +245,10 @@ After each unit:
 | Situation                        | Action                                         |
 |----------------------------------|------------------------------------------------|
 | Task is ambiguous                | Clarification request (max 2 rounds)           |
+| TASK.md has incomplete context   | Declare assumptions explicitly before proceeding |
 | Task bleeds into another domain  | Scope redirect, await direction                |
 | Dependency is missing            | Dependency alert, await resolution             |
+| Type classification uncertain    | Default to shared scope, emit CONTRACTS CHANGE PROPOSAL |
 | Shared type is missing           | CONTRACTS CHANGE PROPOSAL, await approval      |
 | Existing logic will change       | Destructive action confirmation                |
 | Task is too large                | Breakdown proposal, execute one step at a time |
