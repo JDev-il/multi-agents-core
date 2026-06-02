@@ -80,21 +80,38 @@ if (!config.ide) {
 // ── Open IDE ──────────────────────────────────────────────────────────────────
 
 const openIDE = (worktreePath) => {
-  const { cmd, label } = config.ide;
+  const { name, strategy, cmd, app, winPaths, linuxPaths } = config.ide;
 
-  // Manual / Other — no auto-open
-  if (!cmd) return null;
+  if (strategy === 'manual' || !strategy) return null;
 
   try {
-    const platform = process.platform;
-    if (platform === 'darwin') {
-      execSync(`"${cmd}" --new-window "${worktreePath}"`, { stdio: 'pipe' });
-    } else if (platform === 'win32') {
-      execSync(`start "" "${cmd}" "${worktreePath}"`, { stdio: 'pipe' });
+    if (strategy === 'mac-app') {
+      // Mac — open .app bundle directly, no CLI required
+      execSync(`open -a "${app}" --args --new-window "${worktreePath}"`, { stdio: 'pipe' });
+
+    } else if (strategy === 'win-exe') {
+      // Windows — launch via resolved exe path
+      const exe = (winPaths || []).find(p => fs.existsSync(p));
+      if (!exe) return null;
+      execSync(`start "" "${exe}" "${worktreePath}"`, { stdio: 'pipe' });
+
+    } else if (strategy === 'linux-path') {
+      // Linux — launch via resolved install path
+      const bin = (linuxPaths || []).find(p => fs.existsSync(p));
+      if (!bin) return null;
+      execSync(`"${bin}" --new-window "${worktreePath}"`, { stdio: 'pipe' });
+
     } else {
-      execSync(`${cmd} --new-window "${worktreePath}"`, { stdio: 'pipe' });
+      // cli strategy — CLI on PATH, platform-specific invocation
+      const platform = process.platform;
+      if (platform === 'win32') {
+        execSync(`start "" "${cmd}" "${worktreePath}"`, { stdio: 'pipe' });
+      } else {
+        execSync(`"${cmd}" --new-window "${worktreePath}"`, { stdio: 'pipe' });
+      }
     }
-    return label;
+
+    return name;
   } catch {
     return null;
   }
