@@ -229,9 +229,15 @@ const getActiveWorktreeBranches = () => {
   try {
     const output = execSync('git worktree list --porcelain', { cwd: ROOT, stdio: 'pipe' }).toString();
     const branches = [];
-    for (const line of output.split('\n')) {
-      if (line.startsWith('branch ')) {
-        branches.push(line.replace('branch refs/heads/', '').trim());
+    const blocks = output.trim().split('\n\n');
+    for (const block of blocks) {
+      const lines      = block.split('\n');
+      const pathLine   = lines.find(l => l.startsWith('worktree '));
+      const branchLine = lines.find(l => l.startsWith('branch '));
+      if (pathLine && branchLine) {
+        const wtPath   = pathLine.replace('worktree ', '').trim();
+        const wtBranch = branchLine.replace('branch refs/heads/', '').trim();
+        if (fs.existsSync(wtPath)) branches.push(wtBranch);
       }
     }
     return branches;
@@ -256,13 +262,13 @@ const reconcileStaleWorktrees = (entries) => {
   stale.forEach(e => {
     content = content.replace(
       `| IN PROGRESS | ${e.branch} |`,
-      `| STALE       | ${e.branch} |`
+      `| MISSING     | ${e.branch} |`
     );
     // Clean up remote branch
     try {
       execSync(`git push origin --delete ${e.branch}`, { cwd: ROOT, stdio: 'pipe' });
     } catch { /* branch may not exist remotely — silent */ }
-    console.log(`  ${yellow('!')} Stale entry cleaned up: ${bold(e.agent)} (${dim(e.branch)}) → ABANDONED`);
+    console.log(`  ${yellow('!')} Stale entry cleaned up: ${bold(e.agent)} (${dim(e.branch)}) → MISSING`);
   });
 
   fs.writeFileSync(buildStatePath, content, 'utf8');
@@ -274,7 +280,7 @@ const reconcileStaleWorktrees = (entries) => {
 
   // Return updated entries
   return entries.map(e =>
-    stale.find(s => s.branch === e.branch) ? { ...e, status: 'STALE' } : e
+    stale.find(s => s.branch === e.branch) ? { ...e, status: 'MISSING' } : e
   );
 };
 
