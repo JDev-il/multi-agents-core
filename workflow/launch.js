@@ -578,7 +578,8 @@ const main = async () => {
     console.log(`     ${dim('→')} runs complete flow, chains back to launch\n`);
     console.log(`  ${dim('3.')} ${bold('Abandon')}   — discard current branch and work, start fresh`);
     console.log(`     ${red('⚠ All uncommitted and unmerged work will be lost')}\n`);
-    console.log(`  ${dim('4.')} ${bold('Pick again')} — go back to agent selection\n`);
+
+    console.log(`  ${dim('4.')} ${bold('Pick again')} — choose a different agent\n`);
 
     let activeChoice;
     while (!activeChoice) {
@@ -589,30 +590,23 @@ const main = async () => {
     }
 
     if (activeChoice === 1) {
-      // Continue — open IDE and exit with guidance
       separator();
       console.log(`\n  ${green('✓')} Opening existing workspace...\n`);
       openIDE(activeSlot.worktreePath);
       console.log(`  ${bold('Resume your task:')}`);
-      console.log(`  ${dim('1.')} Your IDE should be open at: ${cyan(activeSlot.worktreePath)}`);
+      console.log(`  ${dim('1.')} IDE should be open at: ${cyan(activeSlot.worktreePath)}`);
       console.log(`  ${dim('2.')} Open a NEW Claude Code session there`);
       console.log(`  ${dim('3.')} Type: ${cyan('Read TASK.md and continue from where you stopped.')}\n`);
-      separator();
-      rl.close();
-      return;
+      separator(); rl.close(); return;
     }
-
     if (activeChoice === 2) {
-      // Complete — run complete.js inline
       separator();
       console.log(`\n  ${bold('Running complete flow...')}\n`);
       rl.close();
       const { spawn } = require('child_process');
-      const completeScript = path.join(ROOT, '.workflow', 'complete.js');
-      spawn('node', [completeScript], { cwd: ROOT, stdio: 'inherit' });
+      spawn('node', [path.join(ROOT, '.workflow', 'complete.js')], { cwd: ROOT, stdio: 'inherit' });
       return;
     }
-
     if (activeChoice === 3) {
       separator();
       console.log(`\n  ${bold('Abandoning...')}\n`);
@@ -623,7 +617,6 @@ const main = async () => {
       console.log(`  ${green('✓')} Tracking cleared\n`);
       continue agentLoop;
     }
-
     if (activeChoice === 4) { continue agentLoop; }
   }
 
