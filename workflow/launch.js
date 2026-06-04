@@ -544,12 +544,17 @@ const main = async () => {
     }
   }
 
-  // ── Select agent ─────────────────────────────────────────────────────────────
+  // ── Select agent (loop — guards re-present list on failure) ─────────────────
 
   const agentOptions = AGENTS[project];
-  const agent        = await selectRequired(`* Agent (${project}):`, agentOptions);
+  let agent;
+  let contractsNote = '';
 
-  // Agent already active — decisional block
+  agentLoop: while (true) {
+    agent         = (await selectRequired(`* Agent (${project}):`, agentOptions));
+    contractsNote = '';
+
+    // Agent already active — decisional block
   const { active, slot: activeSlot } = guards.checkAgentActive(tracking, project, agent);
   if (active) {
     // Read task from TASK.md if available
@@ -607,26 +612,38 @@ const main = async () => {
       return;
     }
 
+    if (activeChoice === 1) {
+      separator();
+      console.log(`\n  ${green('✓')} Opening existing workspace...\n`);
+      openIDE(activeSlot.worktreePath);
+      console.log(`  ${bold('Resume your task:')}`);
+      console.log(`  ${dim('1.')} IDE should be open at: ${cyan(activeSlot.worktreePath)}`);
+      console.log(`  ${dim('2.')} Open a NEW Claude Code session there`);
+      console.log(`  ${dim('3.')} Type: ${cyan('Read TASK.md and continue from where you stopped.')}\n`);
+      separator(); rl.close(); return;
+    }
+    if (activeChoice === 2) {
+      separator();
+      console.log(`\n  ${bold('Running complete flow...')}\n`);
+      rl.close();
+      const { spawn } = require('child_process');
+      spawn('node', [path.join(ROOT, '.workflow', 'complete.js')], { cwd: ROOT, stdio: 'inherit' });
+      return;
+    }
     if (activeChoice === 3) {
-      // Abandon — delete branch + clear tracking
       separator();
       console.log(`\n  ${bold('Abandoning...')}\n`);
       const { branch } = activeSlot;
-      try {
-        execSync(`git branch -D ${branch}`, { cwd: ROOT, stdio: 'pipe' });
-        console.log(`  ${green('✓')} Local branch deleted`);
-      } catch { console.log(dim('  ! Local branch not found — skipping')); }
-      try {
-        execSync(`git push origin --delete ${branch}`, { cwd: ROOT, stdio: 'pipe' });
-        console.log(`  ${green('✓')} Remote branch deleted`);
-      } catch { console.log(dim('  ! Remote branch not found — skipping')); }
+      try { execSync(`git branch -D ${branch}`, { cwd: ROOT, stdio: 'pipe' }); console.log(`  ${green('✓')} Local branch deleted`); } catch {}
+      try { execSync(`git push origin --delete ${branch}`, { cwd: ROOT, stdio: 'pipe' }); console.log(`  ${green('✓')} Remote branch deleted`); } catch {}
       guards.clearTrackingSlot(tracking, project, agent, ROOT);
-      console.log(`  ${green('✓')} Tracking cleared — proceeding to new task\n`);
-      // Fall through to normal launch flow
+      console.log(`  ${green('✓')} Tracking cleared\n`);
+      continue agentLoop;
     }
+    if (activeChoice === 4) { continue agentLoop; }
   }
 
-  // MISSING gate — fire if tracking shows MISSING for this agent
+  // MISSING gate
   const trackingSlot = tracking?.[project]?.[agent];
   if (trackingSlot?.status === 'MISSING') {
     const gateResult = await guards.runMissingGate({
@@ -651,62 +668,60 @@ const main = async () => {
     // 'reset' or 'new' → continue with fresh launch flow
   }
 
-  // App skeleton guard — non-scaffold agents require completed work in this scope
+  // App skeleton guard
   if (SCAFFOLD_REQUIRED.includes(agent)) {
     const scopeCompleted = buildEntries.filter(e => e.scope === project && e.status === 'COMPLETED');
     if (scopeCompleted.length === 0) {
-      console.log(`\n${red(`  No completed work found in ${project} scope.`)}`);
-      console.log(dim(`  ${agent} agent requires an existing ${project} scaffold.`));
-      console.log(dim(`  Run the UI agent first to scaffold the project structure.\n`));
-      rl.close();
-      return;
+      console.log(`\n${red(`  ✗ ${agent} requires an existing ${project} scaffold.`)}`);
+      console.log(dim(`  No completed work found in ${project} scope yet.`));
+      console.log(dim(`  Tip: start with the UI agent to scaffold the project first.\n`));
+      const repick = await ask(`  ${bold('Pick a different agent?')} ${dim('(y/n)')}: `);
+      if (repick.toLowerCase() === 'y') continue agentLoop;
+      console.log(yellow('\n  Aborted.\n')); rl.close(); return;
     }
   }
 
-  // Prerequisite agent check — verify required predecessors are COMPLETED
+  // Prerequisite check
   const prereqs = (AGENT_PREREQUISITES[project] || {})[agent] || [];
   if (prereqs.length > 0) {
     const missing = prereqs.filter(req =>
       !buildEntries.some(e => e.scope === project && e.agent === req && e.status === 'COMPLETED')
     );
     if (missing.length > 0) {
-      console.log(`\n${yellow(`  ⚠ ${agent} agent has unmet prerequisites:`)}\n`);
+      console.log(`\n${yellow(`  ⚠ ${agent} has unmet prerequisites:`)}\n`);
       missing.forEach(req => {
         const entry = buildEntries.find(e => e.scope === project && e.agent === req);
         const status = entry ? yellow(entry.status) : red('NOT STARTED');
         console.log(`  ${dim('→')} ${bold(`${project} / ${req}`)}  ${dim('|')}  ${status}`);
       });
       console.log('');
-      const proceed = await ask(`  ${bold('Proceed anyway?')} ${dim('(y/n)')}: `);
-      if (proceed.toLowerCase() !== 'y') {
-        console.log(yellow('\n  Aborted. Complete prerequisites first.\n'));
-        rl.close();
-        return;
-      }
+      const repick = await ask(`  ${bold('Proceed anyway or pick a different agent?')} ${dim('(proceed/pick)')}: `);
+      if (repick.toLowerCase() === 'pick') continue agentLoop;
     }
   }
 
-  // Contracts inform + agent-assist offer
-  let contractsNote = '';
+  // Contracts check
 
   if (CONTRACTS_REQUIRED.includes(agent) && !contracts.hasContent) {
     console.log(`\n${yellow('  ℹ CONTRACTS.md is empty')} ${dim('— no shared types or DTOs defined yet.')}\n`);
     const assist = await ask(`  ${bold('Would you like the agent to establish contracts for your app?')} ${dim('(y/n)')}: `);
-
     if (assist.toLowerCase() === 'y') {
-      contractsNote = 'Before implementing, identify and define the required shared contracts, types, and interfaces in CONTRACTS.md first. Base them on the task context and any existing code structure.';
+      contractsNote = 'Before implementing, identify and define the required shared contracts, types, and interfaces in CONTRACTS.md first.';
       console.log(dim('\n  ✓ Agent will establish contracts as the first step.\n'));
     } else {
-      console.log(dim('\n  You can define the structure here, or the agent will adapt based on what it builds.'));
+      console.log(dim('\n  You can define the structure here, or the agent will adapt.'));
       const manual = await ask(`  ${bold('Provide contract structure')} ${dim('(or press Enter to skip)')}: \n  → `);
       if (manual.trim()) {
-        contractsNote = `Contract structure provided by user:\n${manual.trim()}\nUse this as the basis for CONTRACTS.md before implementing.`;
+        contractsNote = `Contract structure provided:\n${manual.trim()}\nUse this as the basis for CONTRACTS.md.`;
         console.log(dim('  ✓ Contract structure noted.\n'));
       } else {
-        console.log(dim('  Agent will proceed and flag type assumptions as it builds.\n'));
+        console.log(dim('  Agent will flag type assumptions as it builds.\n'));
       }
     }
   }
+
+  break agentLoop;
+  } // end agentLoop
 
   // ── Task description ──────────────────────────────────────────────────────────
 
