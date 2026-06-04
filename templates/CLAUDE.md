@@ -316,18 +316,25 @@ SSH authenticated:
 ```bash
 # Ask username, derive SSH remote
 git remote add origin git@github.com:{username}/{projectName}.git
+git ls-remote --heads origin  # check for existing branches
+# if branches exist → warn user, offer reuse or new repo
 git push -u origin main ✓
 ```
 
 gh authenticated:
 ```bash
-gh repo create {projectName} --public --source=. --remote=origin --push ✓
+gh repo view {username}/{projectName} 2>/dev/null
+# if exists + has branches → warn user, offer reuse or new repo
+# if exists + empty → use it
+# if not exists → gh repo create {projectName} --public --source=. --remote=origin --push ✓
 ```
 
 HTTPS credentials found:
 ```bash
 # Ask username, derive HTTPS remote
 git remote add origin https://github.com/{username}/{projectName}
+git ls-remote --heads origin  # check for existing branches
+# if branches exist → warn user, offer reuse or new repo
 git push -u origin main ✓
 ```
 
@@ -371,7 +378,12 @@ Validate on return:
 ```bash
 git ls-remote https://github.com/{username}/{projectName}
 ```
-→ 200 success: set origin, push ✓
+→ 200 success, no branches: set origin, push ✓
+→ 200 success, has branches:
+  "⚠ This repo already has existing branches from a previous session.
+   1. Reuse  — set as origin, continue (old branches stay)
+   2. New    — provide a different repo name"
+  Wait for user choice before proceeding
 → 404 not found: retry prompt
 → 403 auth error: "Verify username or repo visibility" → re-ask
 → timeout: "Check your connection" → retry option
