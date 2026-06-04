@@ -221,3 +221,29 @@ Only flag for clarification if the task remains genuinely ambiguous AFTER readin
 - "build the ui" with no @config set → framework unknown, cannot proceed
 - "add a component" with no description → which component, what purpose
 - Any task touching another agent's domain → flag and redirect
+## Tracking Protocol
+
+Every agent reads `.scaffold/.tracking.json` at session start.
+This file records the current state of every agent slot.
+
+**Slot schema:**
+```json
+{
+  "branch":       "agent/{scope}/{agent}/{timestamp} | null",
+  "timestamp":    "numeric timestamp | null",
+  "launchedAt":   "ISO date string | null",
+  "status":       "ACTIVE | MISSING | null",
+  "missingCount": "number (informational — not a blocking signal)",
+  "worktreePath": "absolute path | null"
+}
+```
+
+**Status meanings:**
+- `null` — never launched
+- `ACTIVE` — currently running
+- `MISSING` — worktree was deleted without completing
+
+**Agent rules:**
+- If your slot shows `MISSING` — a decision gate fired before you started. Follow the Recovery Notes in TASK.md if present.
+- If your slot shows `ACTIVE` — you are the active instance. Do not create parallel work.
+- Never write directly to `.tracking.json` — managed by workflow scripts only.

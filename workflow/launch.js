@@ -12,6 +12,7 @@ const readline     = require('readline');
 const fs           = require('fs');
 const path         = require('path');
 const { execSync } = require('child_process');
+const guards       = require('./guards');
 
 // ── Colors ────────────────────────────────────────────────────────────────────
 
@@ -223,66 +224,7 @@ const parseBuildState = () => {
   return entries;
 };
 
-// ── Active worktree branches ──────────────────────────────────────────────────
-
-const getActiveWorktreeBranches = () => {
-  try {
-    const output = execSync('git worktree list --porcelain', { cwd: ROOT, stdio: 'pipe' }).toString();
-    const branches = [];
-    const blocks = output.trim().split('\n\n');
-    for (const block of blocks) {
-      const lines      = block.split('\n');
-      const pathLine   = lines.find(l => l.startsWith('worktree '));
-      const branchLine = lines.find(l => l.startsWith('branch '));
-      if (pathLine && branchLine) {
-        const wtPath   = pathLine.replace('worktree ', '').trim();
-        const wtBranch = branchLine.replace('branch refs/heads/', '').trim();
-        if (fs.existsSync(wtPath)) branches.push(wtBranch);
-      }
-    }
-    return branches;
-  } catch { return []; }
-};
-
-// ── Stale worktree reconciliation ─────────────────────────────────────────────
-
-const reconcileStaleWorktrees = (entries) => {
-  const activeBranches = getActiveWorktreeBranches();
-  const stale = entries.filter(e =>
-    e.status === 'IN PROGRESS' &&
-    e.branch &&
-    !activeBranches.includes(e.branch)
-  );
-
-  if (stale.length === 0) return entries;
-
-  const buildStatePath = path.join(ROOT, 'BUILD_STATE.md');
-  let content = fs.readFileSync(buildStatePath, 'utf8');
-
-  stale.forEach(e => {
-    content = content.replace(
-      `| IN PROGRESS | ${e.branch} |`,
-      `| MISSING     | ${e.branch} |`
-    );
-    // Clean up remote branch
-    try {
-      execSync(`git push origin --delete ${e.branch}`, { cwd: ROOT, stdio: 'pipe' });
-    } catch { /* branch may not exist remotely — silent */ }
-    console.log(`  ${yellow('!')} Stale entry cleaned up: ${bold(e.agent)} (${dim(e.branch)}) → MISSING`);
-  });
-
-  fs.writeFileSync(buildStatePath, content, 'utf8');
-
-  try {
-    execSync('git add BUILD_STATE.md', { cwd: ROOT, stdio: 'pipe' });
-    execSync('git commit -m "build: reconcile stale worktree entries"', { cwd: ROOT, stdio: 'pipe' });
-  } catch { /* best-effort */ }
-
-  // Return updated entries
-  return entries.map(e =>
-    stale.find(s => s.branch === e.branch) ? { ...e, status: 'MISSING' } : e
-  );
-};
+// ── Active worktrees / reconciliation delegated to guards ────────────────────
 
 const checkContracts = () => {
   const p = path.join(ROOT, 'CONTRACTS.md');
@@ -544,10 +486,15 @@ const main = async () => {
   console.log(dim(`  Task Launcher - ${config.projectName}\n`));
   separator();
 
+  // ── Entry guards ──────────────────────────────────────────────────────────────
+
+  guards.validateConfig(config, ROOT);
+  const tracking = guards.loadTracking(ROOT, config);
+
   // ── Project status snapshot ───────────────────────────────────────────────────
 
   const rawEntries   = parseBuildState();
-  const buildEntries = reconcileStaleWorktrees(rawEntries);
+  const buildEntries = guards.reconcileStaleWorktrees(rawEntries, tracking, ROOT);
   const contracts    = checkContracts();
   displayProjectStatus(buildEntries, contracts);
 
@@ -601,6 +548,42 @@ const main = async () => {
 
   const agentOptions = AGENTS[project];
   const agent        = await selectRequired(`* Agent (${project}):`, agentOptions);
+
+  // Agent already active — bring existing window to front
+  const { active, slot: activeSlot } = guards.checkAgentActive(tracking, project, agent);
+  if (active) {
+    console.log(`\n${yellow(`  ⚠ ${project}/${agent} is already active.`)}`);
+    console.log(dim(`  Workspace: ${activeSlot.worktreePath}`));
+    console.log(dim('  Opening existing workspace...\n'));
+    openIDE(activeSlot.worktreePath);
+    rl.close();
+    return;
+  }
+
+  // MISSING gate — fire if tracking shows MISSING for this agent
+  const trackingSlot = tracking?.[project]?.[agent];
+  if (trackingSlot?.status === 'MISSING') {
+    const gateResult = await guards.runMissingGate({
+      scope:   project,
+      agent,
+      slot:    trackingSlot,
+      tracking,
+      config,
+      ROOT,
+      ask,
+    });
+
+    if (gateResult.action === 'recovered') {
+      openIDE(gateResult.worktreePath);
+      rl.close();
+      return;
+    }
+    if (gateResult.action === 'failed') {
+      rl.close();
+      return;
+    }
+    // 'reset' or 'new' → continue with fresh launch flow
+  }
 
   // App skeleton guard — non-scaffold agents require completed work in this scope
   if (SCAFFOLD_REQUIRED.includes(agent)) {
@@ -793,6 +776,17 @@ const main = async () => {
     'utf8'
   );
   console.log(`  ${green('✓')} TASK.md written`);
+
+  // ── Write .tracking.json slot ─────────────────────────────────────────────────
+
+  guards.updateTrackingSlot(tracking, project, agent, {
+    branch:       branchName,
+    timestamp,
+    launchedAt:   new Date().toISOString(),
+    status:       'ACTIVE',
+    worktreePath,
+  }, ROOT);
+  console.log(`  ${green('✓')} Tracking updated`);
 
   // ── Update BUILD_STATE.md ─────────────────────────────────────────────────────
 

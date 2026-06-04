@@ -13,6 +13,7 @@ const readline          = require('readline');
 const fs                = require('fs');
 const path              = require('path');
 const { execSync, spawn } = require('child_process');
+const guards            = require('./guards');
 
 // ── Colors ────────────────────────────────────────────────────────────────────
 
@@ -48,11 +49,6 @@ if (!fs.existsSync(LOCK_PATH)) {
 }
 
 const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-
-// ── TTY detection ─────────────────────────────────────────────────────────────
-// When running without a TTY (e.g. from Claude Code), auto-confirm safe actions
-
-const IS_TTY = process.stdin.isTTY === true;
 
 // ── Readline ──────────────────────────────────────────────────────────────────
 
@@ -145,29 +141,20 @@ const main = async () => {
 
   // ── Select worktree to complete ───────────────────────────────────────────────
 
+  console.log(`\n${bold('Active tasks:')}\n`);
+  worktrees.forEach((wt, i) => {
+    console.log(`  ${dim(`${i + 1}.`)} ${wt.branch}`);
+    console.log(`     ${dim(wt.path)}`);
+  });
+
   let selectedWorktree;
-
-  if (worktrees.length === 1) {
-    // Auto-select when only one active worktree exists
-    selectedWorktree = worktrees[0];
-    console.log(`\n${bold('Active task:')}\n`);
-    console.log(`  ${green('→')} ${selectedWorktree.branch}`);
-    console.log(`     ${dim(selectedWorktree.path)}\n`);
-  } else {
-    console.log(`\n${bold('Active tasks:')}\n`);
-    worktrees.forEach((wt, i) => {
-      console.log(`  ${dim(`${i + 1}.`)} ${wt.branch}`);
-      console.log(`     ${dim(wt.path)}`);
-    });
-
-    while (!selectedWorktree) {
-      const input = await ask(`\n  ${bold('Select task to complete')} ${dim(`(1-${worktrees.length})`)}: `);
-      const index = parseInt(input) - 1;
-      if (!isNaN(index) && index >= 0 && index < worktrees.length) {
-        selectedWorktree = worktrees[index];
-      } else {
-        console.log(yellow(`  Please enter a number between 1 and ${worktrees.length}.`));
-      }
+  while (!selectedWorktree) {
+    const input = await ask(`\n  ${bold('Select task to complete')} ${dim(`(1-${worktrees.length})`)}: `);
+    const index = parseInt(input) - 1;
+    if (!isNaN(index) && index >= 0 && index < worktrees.length) {
+      selectedWorktree = worktrees[index];
+    } else {
+      console.log(yellow(`  Please enter a number between 1 and ${worktrees.length}.`));
     }
   }
 
@@ -178,20 +165,16 @@ const main = async () => {
   const taskMdPath = path.join(worktreePath, 'TASK.md');
   if (fs.existsSync(taskMdPath)) {
     const taskContent = fs.readFileSync(taskMdPath, 'utf8');
-    const isCompleted = taskContent.includes('[x] COMPLETED') || taskContent.includes('[x] Completed');
+    const isCompleted = taskContent.includes('[x] COMPLETED');
 
     if (!isCompleted) {
-      if (!IS_TTY) {
-        console.log(`  ${yellow('!')} TASK.md not marked COMPLETED — proceeding anyway (non-interactive mode)`);
-      } else {
-        console.log(`\n${yellow('  TASK.md is not marked as COMPLETED.')}`);
-        console.log(dim('  The agent may still be working on this task.\n'));
-        const proceed = await ask(`  ${bold('Proceed with merge anyway?')} ${dim('(y/n)')}: `);
-        if (proceed.toLowerCase() !== 'y') {
-          console.log(yellow('\n  Aborted. Complete the task first.\n'));
-          rl.close();
-          return;
-        }
+      console.log(`\n${yellow('  TASK.md is not marked as COMPLETED.')}`);
+      console.log(dim('  The agent may still be working on this task.\n'));
+      const proceed = await ask(`  ${bold('Proceed with merge anyway?')} ${dim('(y/n)')}: `);
+      if (proceed.toLowerCase() !== 'y') {
+        console.log(yellow('\n  Aborted. Complete the task first.\n'));
+        rl.close();
+        return;
       }
     }
   }
@@ -205,15 +188,11 @@ const main = async () => {
   console.log(`  ${dim('Into')}     : ${green('main')}`);
   console.log(`  ${dim('Worktree')} : ${dim(worktreePath)}\n`);
 
-  if (IS_TTY) {
-    const confirm = await ask(`${bold('Confirm merge into main?')} ${dim('(y/n)')}: `);
-    if (confirm.toLowerCase() !== 'y') {
-      console.log(yellow('\n  Aborted.\n'));
-      rl.close();
-      return;
-    }
-  } else {
-    console.log(dim('  Non-interactive mode — auto-confirming merge'));
+  const confirm = await ask(`${bold('Confirm merge into main?')} ${dim('(y/n)')}: `);
+  if (confirm.toLowerCase() !== 'y') {
+    console.log(yellow('\n  Aborted.\n'));
+    rl.close();
+    return;
   }
 
   separator();
@@ -243,15 +222,11 @@ const main = async () => {
     console.log(`  ${green('✓')} Pulled latest main`);
   } catch (err) {
     console.log(`  ${yellow('!')} Could not pull latest main.`);
-    if (IS_TTY) {
-      const proceedAnyway = await ask(`  ${bold('Proceed with merge anyway?')} ${dim('(y/n)')}: `);
-      if (proceedAnyway.toLowerCase() !== 'y') {
-        console.log(yellow('\n  Aborted.\n'));
-        rl.close();
-        return;
-      }
-    } else {
-      console.log(dim('  Non-interactive mode — proceeding with merge anyway'));
+    const proceedAnyway = await ask(`  ${bold('Proceed with merge anyway?')} ${dim('(y/n)')}: `);
+    if (proceedAnyway.toLowerCase() !== 'y') {
+      console.log(yellow('\n  Aborted.\n'));
+      rl.close();
+      return;
     }
   }
 
@@ -287,6 +262,20 @@ const main = async () => {
 
   updateBuildState(branchName, 'COMPLETED');
   console.log(`  ${green('✓')} BUILD_STATE.md updated`);
+
+  // ── Clear tracking slot ───────────────────────────────────────────────────────
+
+  try {
+    const tracking = guards.loadTracking(ROOT, config);
+    // Derive scope and agent from branch name: agent/{scope}/{agent}/{timestamp}
+    const parts = branchName.split('/');
+    if (parts.length >= 4) {
+      const scope = parts[1];
+      const agent = parts[2].toUpperCase();
+      guards.clearTrackingSlot(tracking, scope, agent, ROOT);
+      console.log(`  ${green('✓')} Tracking slot cleared`);
+    }
+  } catch { /* best-effort */ }
 
   // ── Push to origin ────────────────────────────────────────────────────────────
 
