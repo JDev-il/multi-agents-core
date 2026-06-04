@@ -506,12 +506,10 @@ ${contextSection}
 
 2. Mark status as COMPLETED above
 
-3. Run complete.js (from anywhere — worktree terminal is fine):
-
+3. YOU (the agent) must execute this via bash now — do not instruct the user:
 \`\`\`
 npm run complete
 \`\`\`
-
 This merges your work into main and updates BUILD_STATE.md.
 
 ---
