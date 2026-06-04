@@ -126,6 +126,30 @@ const AGENTS = {
   shared:  ['SECURITY'],
 };
 
+// Short descriptions per agent
+const AGENT_DESCRIPTIONS = {
+  client: {
+    UI:            'scaffolds the full project structure — always first',
+    LOGIC:         'state management, API integration, custom hooks',
+    FORMS:         'form components, validation, submission handling',
+    ROUTING:       'page routing, navigation, URL structure',
+    TESTING:       'unit and integration tests',
+    ACCESSIBILITY: 'a11y compliance, keyboard navigation',
+  },
+  backend: {
+    API:     'REST/GraphQL endpoints, request/response handling — start here',
+    LOGIC:   'business logic, services, data processing',
+    AUTH:    'authentication, authorization, session management',
+    DB:      'database schemas, migrations, queries',
+    TESTING: 'API and integration tests',
+    EVENTS:  'event queues, pub/sub, webhooks',
+    JOBS:    'background jobs, scheduled tasks, workers',
+  },
+  shared: {
+    SECURITY: 'shared auth utilities, encryption, input validation',
+  },
+};
+
 // Agents that require an existing scope scaffold before they can run
 const SCAFFOLD_REQUIRED = ['LOGIC', 'FORMS', 'ROUTING', 'TESTING', 'ACCESSIBILITY', 'AUTH', 'DB', 'EVENTS', 'JOBS'];
 
@@ -307,6 +331,35 @@ const showList = (items) => {
   items.forEach((item, i) => {
     const label = typeof item === 'string' ? item : item.label;
     console.log(`  ${dim(`${i + 1}.`)} ${label}`);
+  });
+};
+
+const showAgentList = (scope, agents, buildEntries) => {
+  const completed = buildEntries
+    .filter(e => e.scope === scope && e.status === 'COMPLETED')
+    .map(e => e.agent);
+
+  // Find recommended next agent
+  const prereqs = AGENT_PREREQUISITES[scope] || {};
+  let recommended = null;
+
+  for (const agent of agents) {
+    if (completed.includes(agent)) continue;
+    const reqs = prereqs[agent] || [];
+    const metReqs = reqs.every(r => completed.includes(r));
+    if (metReqs) { recommended = agent; break; }
+  }
+
+  const descriptions = AGENT_DESCRIPTIONS[scope] || {};
+
+  agents.forEach((agent, i) => {
+    const desc       = descriptions[agent] ? dim(`  ${descriptions[agent]}`) : '';
+    const isRecommended = agent === recommended;
+    const tag        = isRecommended
+      ? (completed.length === 0 ? cyan('  ← start here') : cyan('  ← next step'))
+      : '';
+    const label      = isRecommended ? bold(agent) : agent;
+    console.log(`  ${dim(`${i + 1}.`)} ${label}${tag}${desc}`);
   });
 };
 
@@ -551,7 +604,16 @@ const main = async () => {
   let contractsNote = '';
 
   agentLoop: while (true) {
-    agent         = (await selectRequired(`* Agent (${project}):`, agentOptions));
+    agent         = (await (async () => {
+      while (true) {
+        console.log(`\n${bold(`* Agent (${project}):`)}`);
+        showAgentList(project, agentOptions, buildEntries);
+        const input = await ask(`\n  ${bold('Select')} ${dim(`(1-${agentOptions.length})`)}: `);
+        const n = parseInt(input) - 1;
+        if (!isNaN(n) && n >= 0 && n < agentOptions.length) return agentOptions[n];
+        console.log(yellow(`  Please enter a number between 1 and ${agentOptions.length}.`));
+      }
+    })());
     contractsNote = '';
 
     // Agent already active — decisional block
