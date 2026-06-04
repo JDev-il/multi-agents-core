@@ -258,35 +258,96 @@ If `.scaffold/.remote-setup-needed` exists at session start, this MUST
 be resolved before any task work begins. The deployment chain
 (`npm run complete → git push origin main`) will fail without it.
 
-**Steps — execute in order:**
+**Step 1 — Check if already configured:**
+```bash
+git remote get-url origin
+```
+→ Origin exists: delete flag, proceed with task ✓
+→ No origin: continue to Step 2
 
-1. Check current remote:
-   `git remote get-url origin`
-   → If origin exists: delete the flag file, proceed with task
-   → If no origin: continue below
+**Step 2 — Silent background authentication detection (OS-aware):**
 
-2. Check gh CLI availability:
-   `gh auth status`
-   → Available + authenticated → use gh to create/link repo (step 3a)
-   → Not available → guide user through manual setup (step 3b)
+Run all checks silently. Stop at the first that succeeds.
 
-3a. With gh CLI:
-   `gh repo create {projectName} --public --source=. --remote=origin --push`
-   → Creates repo, sets origin, pushes in one step
+Mac:
+```bash
+ssh -T git@github.com 2>&1         # exit 1 = authenticated
+gh auth status 2>/dev/null          # gh authenticated
+git ls-remote https://github.com    # HTTPS creds in Keychain
+```
 
-3b. Without gh CLI — OS-aware instructions:
-   - Mac/Linux: `git remote add origin https://github.com/{username}/{repo}`
-   - Prompt user for their GitHub repo URL
-   - Validate: `git ls-remote origin HEAD`
+Windows:
+```bash
+ssh -T git@github.com               # SSH
+gh auth status                      # gh
+git ls-remote https://github.com    # Windows Credential Manager
+```
 
-4. On success:
-   `git push -u origin main`
-   Delete `.scaffold/.remote-setup-needed`
-   Confirm to user: "Remote configured — proceeding with task."
+Linux:
+```bash
+ssh -T git@github.com               # SSH
+gh auth status                      # gh
+git ls-remote https://github.com    # ~/.git-credentials
+```
 
-5. On failure:
-   Surface the specific error (auth / not found / network)
-   Do NOT proceed with task implementation until resolved
-   Do NOT delete the flag file on failure
+**Step 3 — Act on first successful method:**
 
-**Never begin task implementation until this flag is cleared.**
+SSH authenticated:
+```bash
+# Ask username, derive SSH remote
+git remote add origin git@github.com:{username}/{projectName}.git
+git push -u origin main ✓
+```
+
+gh authenticated:
+```bash
+gh repo create {projectName} --public --source=. --remote=origin --push ✓
+```
+
+HTTPS credentials found:
+```bash
+# Ask username, derive HTTPS remote
+git remote add origin https://github.com/{username}/{projectName}
+git push -u origin main ✓
+```
+
+**Step 4 — ALL silent methods failed → browser (last resort only):**
+
+Ask for GitHub username only:
+```
+"What's your GitHub username?"
+```
+
+Derive URL: `https://github.com/new?name={projectName}`
+
+Open browser (OS-aware — check .app exists before using):
+```bash
+# Mac: detect installed browser via /Applications/*.app
+open -a "{detected browser}" "https://github.com/new?name={projectName}"
+# Windows:
+start "" "https://github.com/new?name={projectName}"
+# Linux:
+xdg-open "https://github.com/new?name={projectName}"
+```
+
+Instruct: "Create the repo named `{projectName}`, then press Enter"
+
+Validate on return:
+```bash
+git ls-remote https://github.com/{username}/{projectName}
+```
+→ 200 success: set origin, push ✓
+→ 404 not found: retry prompt
+→ 403 auth error: "Verify username or repo visibility" → re-ask
+→ timeout: "Check your connection" → retry option
+
+**Step 5 — Cleanup on success:**
+```bash
+git push -u origin main
+rm .scaffold/.remote-setup-needed
+```
+Log completion in TASK.md checklist.
+Confirm: "Remote configured — proceeding with task."
+
+**Never begin task implementation until this flag is cleared.
+Never delete the flag on failure.**

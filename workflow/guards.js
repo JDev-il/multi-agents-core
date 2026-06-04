@@ -563,6 +563,67 @@ const reconcileStaleWorktrees = (entries, tracking, ROOT) => {
   );
 };
 
+// ── Browser opener ───────────────────────────────────────────────────────────
+
+const openBrowser = (url) => {
+  const platform = process.platform;
+  try {
+    if (platform === 'darwin') {
+      try {
+        execSync(`open "${url}"`, { stdio: 'pipe' });
+        return true;
+      } catch {}
+      const browsers = [
+        'Google Chrome', 'Safari', 'Firefox',
+        'Microsoft Edge', 'Arc', 'Brave Browser',
+      ];
+      for (const browser of browsers) {
+        if (fs.existsSync(`/Applications/${browser}.app`)) {
+          execSync(`open -a "${browser}" "${url}"`, { stdio: 'pipe' });
+          return true;
+        }
+      }
+    } else if (platform === 'win32') {
+      execSync(`start "" "${url}"`, { stdio: 'pipe' });
+      return true;
+    } else {
+      execSync(`xdg-open "${url}"`, { stdio: 'pipe' });
+      return true;
+    }
+  } catch {}
+  return false;
+};
+
+// ── Silent auth detection ─────────────────────────────────────────────────────
+
+const detectAuthMethod = (ROOT) => {
+  // 1. SSH
+  try {
+    const out = execSync('ssh -T git@github.com 2>&1', { stdio: 'pipe', encoding: 'utf8' });
+    if (out.includes('successfully authenticated')) return 'ssh';
+  } catch (e) {
+    // exit code 1 = authenticated (GitHub returns 1 for no shell access)
+    if (e.stdout?.includes('successfully authenticated') ||
+        e.stderr?.includes('successfully authenticated')) return 'ssh';
+  }
+
+  // 2. gh CLI
+  try {
+    execSync('gh auth status', { stdio: 'pipe' });
+    return 'gh';
+  } catch {}
+
+  // 3. HTTPS stored credentials
+  try {
+    execSync('git ls-remote https://github.com 2>/dev/null', {
+      cwd: ROOT, stdio: 'pipe', timeout: 5000,
+    });
+    return 'https';
+  } catch {}
+
+  return null;
+};
+
 // ── Exports ───────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -576,4 +637,6 @@ module.exports = {
   runMissingGate,
   reconcileStaleWorktrees,
   getActiveWorktrees,
+  openBrowser,
+  detectAuthMethod,
 };
