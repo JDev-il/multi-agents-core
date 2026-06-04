@@ -247,3 +247,46 @@ This file records the current state of every agent slot.
 - If your slot shows `MISSING` — a decision gate fired before you started. Follow the Recovery Notes in TASK.md if present.
 - If your slot shows `ACTIVE` — you are the active instance. Do not create parallel work.
 - Never write directly to `.tracking.json` — managed by workflow scripts only.
+
+## Remote Setup Protocol
+
+**Context:** `npm run init` commits the project locally but does NOT push
+to a remote. The template origin is removed during init and moved to
+`upstream`. The project has no remote until one is configured.
+
+If `.scaffold/.remote-setup-needed` exists at session start, this MUST
+be resolved before any task work begins. The deployment chain
+(`npm run complete → git push origin main`) will fail without it.
+
+**Steps — execute in order:**
+
+1. Check current remote:
+   `git remote get-url origin`
+   → If origin exists: delete the flag file, proceed with task
+   → If no origin: continue below
+
+2. Check gh CLI availability:
+   `gh auth status`
+   → Available + authenticated → use gh to create/link repo (step 3a)
+   → Not available → guide user through manual setup (step 3b)
+
+3a. With gh CLI:
+   `gh repo create {projectName} --public --source=. --remote=origin --push`
+   → Creates repo, sets origin, pushes in one step
+
+3b. Without gh CLI — OS-aware instructions:
+   - Mac/Linux: `git remote add origin https://github.com/{username}/{repo}`
+   - Prompt user for their GitHub repo URL
+   - Validate: `git ls-remote origin HEAD`
+
+4. On success:
+   `git push -u origin main`
+   Delete `.scaffold/.remote-setup-needed`
+   Confirm to user: "Remote configured — proceeding with task."
+
+5. On failure:
+   Surface the specific error (auth / not found / network)
+   Do NOT proceed with task implementation until resolved
+   Do NOT delete the flag file on failure
+
+**Never begin task implementation until this flag is cleared.**

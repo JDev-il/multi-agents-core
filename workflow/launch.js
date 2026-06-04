@@ -417,7 +417,7 @@ const generateContextSection = (answers, skipped) => {
   return section;
 };
 
-const generateTaskMd = ({ project, agent, task, branchName, contextSection }) => {
+const generateTaskMd = ({ project, agent, task, branchName, contextSection, remoteSetupSection }) => {
   const dod    = (DOD_ITEMS[agent] || []).map(item => `- [ ] ${item}`).join('\n');
   const prompt = project === 'shared'
     ? `Use shared/agents/${agent}.md. Task: ${task}`
@@ -429,7 +429,7 @@ const generateTaskMd = ({ project, agent, task, branchName, contextSection }) =>
 Project : ${project}
 Agent   : ${agent}
 Branch  : ${branchName}
-
+${remoteSetupSection}
 ## Execution Mode
 AUTONOMOUS - Execute all subtasks without stopping for confirmation.
 Only stop if a genuinely destructive action is detected (modifying or deleting existing files).
@@ -722,6 +722,34 @@ const main = async () => {
   separator();
   console.log(`\n${bold('Setting up workspace...')}\n`);
 
+  // ── Remote setup flag check ───────────────────────────────────────────────────
+
+  const remoteFlagPath   = path.join(ROOT, '.scaffold', '.remote-setup-needed');
+  const remoteSetupNeeded = fs.existsSync(remoteFlagPath);
+
+  const remoteSetupSection = remoteSetupNeeded ? `
+---
+
+## ⚠ Pre-Task: Remote Setup Required
+This project has no GitHub remote configured yet.
+Complete ALL steps below BEFORE starting task implementation.
+
+- [ ] Check: \`git remote get-url origin\`
+- [ ] Detect gh CLI: \`gh auth status\`
+- [ ] Configure remote (gh create or manual — see Root CLAUDE.md)
+- [ ] Validate: \`git ls-remote origin HEAD\`
+- [ ] Push: \`git push -u origin main\`
+- [ ] Delete \`.scaffold/.remote-setup-needed\`
+
+Mark each step complete. Only proceed to the task below when all are checked.
+
+---
+` : '';
+
+  if (remoteSetupNeeded) {
+    console.log(`  ${yellow('ℹ Remote setup required')} — agent will handle this first.\n`);
+  }
+
   // ── Create worktree ───────────────────────────────────────────────────────────
 
   try {
@@ -772,7 +800,7 @@ const main = async () => {
 
   fs.writeFileSync(
     path.join(worktreePath, 'TASK.md'),
-    generateTaskMd({ project, agent, task, branchName, contextSection }),
+    generateTaskMd({ project, agent, task, branchName, contextSection, remoteSetupSection }),
     'utf8'
   );
   console.log(`  ${green('✓')} TASK.md written`);
