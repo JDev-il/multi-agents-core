@@ -252,24 +252,29 @@ const main = async () => {
       stdio: 'pipe',
     });
     console.log(`  ${green('✓')} Merged ${branchName} into main`);
-  } catch (err) {
-    console.log(`\n${red('  MERGE CONFLICT DETECTED')}`);
-    console.log(dim('  Files in conflict need manual resolution.\n'));
-    console.log(`  ${bold('Options:')}\n`);
-    console.log(`  ${dim('1.')} Open VS Code to resolve conflicts manually`);
-    console.log(`     ${cyan(`code "${ROOT}"`)}\n`);
-    console.log(`  ${dim('2.')} Abort the merge and try again later`);
-    console.log(`     ${cyan('git merge --abort')}\n`);
+  } catch (mergeErr) {
+    // Check if BUILD_STATE.md is the only conflict — auto-resolve
+    try {
+      const conflicts = execSync('git diff --name-only --diff-filter=U', { cwd: ROOT, encoding: 'utf8' })
+        .trim().split('\n').filter(Boolean);
 
-    const resolution = await ask(`  ${bold('Abort merge?')} ${dim('(y/n)')}: `);
-    if (resolution.toLowerCase() === 'y') {
-      execSync('git merge --abort', { cwd: ROOT, stdio: 'pipe' });
-      console.log(yellow('\n  Merge aborted. Resolve conflicts and try again.\n'));
-    } else {
-      console.log(yellow('\n  Resolve conflicts manually, then run: git commit\n'));
+      if (conflicts.length === 1 && conflicts[0] === 'BUILD_STATE.md') {
+        execSync('git checkout --ours BUILD_STATE.md', { cwd: ROOT, stdio: 'pipe' });
+        execSync('git add BUILD_STATE.md', { cwd: ROOT, stdio: 'pipe' });
+        execSync(`git commit -m "merge: ${branchName} into main"`, { cwd: ROOT, stdio: 'pipe' });
+        console.log(`  ${green('✓')} Merged ${branchName} into main`);
+        console.log(dim('  ℹ BUILD_STATE.md conflict auto-resolved'));
+      } else {
+        console.log(`\n${red('  ✗ Merge conflict in:')} ${conflicts.join(', ')}`);
+        console.log(dim('  Resolve conflicts manually, then run: git commit\n'));
+        rl.close();
+        return;
+      }
+    } catch {
+      console.log(`\n${red('  ✗ Merge failed.')} Resolve manually.\n`);
+      rl.close();
+      return;
     }
-    rl.close();
-    return;
   }
 
   // ── Update BUILD_STATE.md ─────────────────────────────────────────────────────

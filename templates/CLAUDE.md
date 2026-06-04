@@ -198,10 +198,14 @@ When executing a task from `TASK.md`, operate in fully autonomous mode:
   is genuinely ambiguous after reading all available context files
 
 **These workflow files are ALWAYS updated without confirmation:**
-- `BUILD_STATE.md`
-- `TASK.md`
+- `TASK.md` — mark `[x] COMPLETED` when your task is done
 - `CONTRACTS.md`
 - `.scaffold/.tracking.json`
+
+**NEVER update `BUILD_STATE.md` directly.**
+`complete.js` owns all BUILD_STATE.md updates after merge.
+Editing it in the worktree causes merge conflicts on every task.
+Only update `TASK.md` status to `[x] COMPLETED` — that is sufficient.
 
 ## Worktree Awareness
 
