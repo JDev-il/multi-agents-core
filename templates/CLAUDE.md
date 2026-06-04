@@ -321,14 +321,14 @@ SSH authenticated:
 # Ask username, derive SSH remote
 git remote add origin git@github.com:{username}/{projectName}.git
 git ls-remote --heads origin  # check for existing branches
-# if branches exist → warn user, offer reuse or new repo
+# if branches exist → surface warning, offer Reuse (clear + reinit) or New repo
 git push -u origin main ✓
 ```
 
 gh authenticated:
 ```bash
 gh repo view {username}/{projectName} 2>/dev/null
-# if exists + has branches → warn user, offer reuse or new repo
+# if exists + has branches → surface warning, offer Reuse (clear + reinit) or New repo
 # if exists + empty → use it
 # if not exists → gh repo create {projectName} --public --source=. --remote=origin --push ✓
 ```
@@ -338,7 +338,7 @@ HTTPS credentials found:
 # Ask username, derive HTTPS remote
 git remote add origin https://github.com/{username}/{projectName}
 git ls-remote --heads origin  # check for existing branches
-# if branches exist → warn user, offer reuse or new repo
+# if branches exist → surface warning, offer Reuse (clear + reinit) or New repo
 git push -u origin main ✓
 ```
 
@@ -384,10 +384,30 @@ git ls-remote https://github.com/{username}/{projectName}
 ```
 → 200 success, no branches: set origin, push ✓
 → 200 success, has branches:
-  "⚠ This repo already has existing branches from a previous session.
-   1. Reuse  — set as origin, continue (old branches stay)
-   2. New    — provide a different repo name"
-  Wait for user choice before proceeding
+  Output this EXACTLY:
+  "⚠ Remote Conflict — Existing Branches Detected
+   The GitHub repo {username}/{projectName} already has history from a previous session.
+
+   1. Reuse     — clear remote entirely and reinitialize with current project
+                  ⚠ All previous remote history will be permanently deleted
+   2. New repo  — provide a different repo name, a new repo will be created"
+
+  Wait for user choice.
+
+  If Reuse (1):
+    gh available:
+      gh repo delete {username}/{projectName} --yes
+      gh repo create {projectName} --public --source=. --remote=origin --push ✓
+    gh not available:
+      git push origin main --force
+      Delete all remote branches not present locally:
+      git ls-remote --heads origin → list remote branches
+      git push origin --delete {each old branch} ✓
+
+  If New repo (2):
+    Ask: "Enter a new repo name:"
+    Derive new URL, open browser to github.com/new?name={newName}
+    Wait for "done", validate, set as origin, push ✓
 → 404 not found: retry prompt
 → 403 auth error: "Verify username or repo visibility" → re-ask
 → timeout: "Check your connection" → retry option
