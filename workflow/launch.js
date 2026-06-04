@@ -763,10 +763,17 @@ const main = async () => {
   // ── Task description ──────────────────────────────────────────────────────────
 
   separator();
+  const defaultTask = (AGENT_DESCRIPTIONS[project] || {})[agent] || '';
   let task = '';
   while (!task) {
-    task = await ask(`\n${bold('* Task description')}: `);
-    if (!task) console.log(yellow('  Task description is required.'));
+    if (defaultTask) {
+      console.log(`\n${bold('* Task description')} ${dim(`[default: ${defaultTask}]`)}`);
+      task = await ask(`  → `);
+      if (!task) task = defaultTask;
+    } else {
+      task = await ask(`\n${bold('* Task description')}: `);
+      if (!task) console.log(yellow('  Task description is required.'));
+    }
   }
 
   // ── Agent context questions ───────────────────────────────────────────────────
