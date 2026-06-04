@@ -141,6 +141,8 @@ const main = async () => {
 
   // ── Select worktree to complete ───────────────────────────────────────────────
 
+  const isNonTTY = !process.stdin.isTTY;
+
   console.log(`\n${bold('Active tasks:')}\n`);
   worktrees.forEach((wt, i) => {
     console.log(`  ${dim(`${i + 1}.`)} ${wt.branch}`);
@@ -148,13 +150,19 @@ const main = async () => {
   });
 
   let selectedWorktree;
-  while (!selectedWorktree) {
-    const input = await ask(`\n  ${bold('Select task to complete')} ${dim(`(1-${worktrees.length})`)}: `);
-    const index = parseInt(input) - 1;
-    if (!isNaN(index) && index >= 0 && index < worktrees.length) {
-      selectedWorktree = worktrees[index];
-    } else {
-      console.log(yellow(`  Please enter a number between 1 and ${worktrees.length}.`));
+
+  if (isNonTTY || worktrees.length === 1) {
+    selectedWorktree = worktrees[0];
+    console.log(dim(`\n  Auto-selected: ${selectedWorktree.branch}\n`));
+  } else {
+    while (!selectedWorktree) {
+      const input = await ask(`\n  ${bold('Select task to complete')} ${dim(`(1-${worktrees.length})`)}: `);
+      const index = parseInt(input) - 1;
+      if (!isNaN(index) && index >= 0 && index < worktrees.length) {
+        selectedWorktree = worktrees[index];
+      } else {
+        console.log(yellow(`  Please enter a number between 1 and ${worktrees.length}.`));
+      }
     }
   }
 
@@ -167,7 +175,7 @@ const main = async () => {
     const taskContent = fs.readFileSync(taskMdPath, 'utf8');
     const isCompleted = taskContent.includes('[x] COMPLETED');
 
-    if (!isCompleted) {
+    if (!isCompleted && !isNonTTY) {
       console.log(`\n${yellow('  TASK.md is not marked as COMPLETED.')}`);
       console.log(dim('  The agent may still be working on this task.\n'));
       const proceed = await ask(`  ${bold('Proceed with merge anyway?')} ${dim('(y/n)')}: `);
@@ -176,6 +184,8 @@ const main = async () => {
         rl.close();
         return;
       }
+    } else if (!isCompleted && isNonTTY) {
+      console.log(dim('  ℹ TASK.md not marked complete — proceeding in non-TTY mode.'));
     }
   }
 
@@ -188,7 +198,7 @@ const main = async () => {
   console.log(`  ${dim('Into')}     : ${green('main')}`);
   console.log(`  ${dim('Worktree')} : ${dim(worktreePath)}\n`);
 
-  const confirm = await ask(`${bold('Confirm merge into main?')} ${dim('(y/n)')}: `);
+  const confirm = isNonTTY ? 'y' : await ask(`${bold('Confirm merge into main?')} ${dim('(y/n)')}: `);
   if (confirm.toLowerCase() !== 'y') {
     console.log(yellow('\n  Aborted.\n'));
     rl.close();
@@ -222,11 +232,15 @@ const main = async () => {
     console.log(`  ${green('✓')} Pulled latest main`);
   } catch (err) {
     console.log(`  ${yellow('!')} Could not pull latest main.`);
-    const proceedAnyway = await ask(`  ${bold('Proceed with merge anyway?')} ${dim('(y/n)')}: `);
-    if (proceedAnyway.toLowerCase() !== 'y') {
-      console.log(yellow('\n  Aborted.\n'));
-      rl.close();
-      return;
+    if (!isNonTTY) {
+      const proceedAnyway = await ask(`  ${bold('Proceed with merge anyway?')} ${dim('(y/n)')}: `);
+      if (proceedAnyway.toLowerCase() !== 'y') {
+        console.log(yellow('\n  Aborted.\n'));
+        rl.close();
+        return;
+      }
+    } else {
+      console.log(dim('  Proceeding in non-TTY mode.'));
     }
   }
 
