@@ -549,15 +549,81 @@ const main = async () => {
   const agentOptions = AGENTS[project];
   const agent        = await selectRequired(`* Agent (${project}):`, agentOptions);
 
-  // Agent already active — bring existing window to front
+  // Agent already active — decisional block
   const { active, slot: activeSlot } = guards.checkAgentActive(tracking, project, agent);
   if (active) {
-    console.log(`\n${yellow(`  ⚠ ${project}/${agent} is already active.`)}`);
-    console.log(dim(`  Workspace: ${activeSlot.worktreePath}`));
-    console.log(dim('  Opening existing workspace...\n'));
-    openIDE(activeSlot.worktreePath);
-    rl.close();
-    return;
+    // Read task from TASK.md if available
+    let activeTask = activeSlot.branch;
+    const activeTm = path.join(activeSlot.worktreePath, 'TASK.md');
+    if (fs.existsSync(activeTm)) {
+      const tmContent = fs.readFileSync(activeTm, 'utf8');
+      const taskMatch = tmContent.match(/## Task\n.*Task:\s*(.+)/);
+      if (taskMatch) activeTask = taskMatch[1].trim();
+    }
+
+    separator();
+    console.log(`\n${yellow(`  ⚠ ${project}/${agent} is already active`)}\n`);
+    console.log(`  ${dim('Branch')}  : ${activeSlot.branch}`);
+    console.log(`  ${dim('Launched')}: ${activeSlot.launchedAt ? new Date(activeSlot.launchedAt).toLocaleString() : 'unknown'}`);
+    console.log(`  ${dim('Task')}    : ${activeTask}\n`);
+
+    console.log(`  ${dim('1.')} ${bold('Continue')}  — open existing workspace and resume from last point`);
+    console.log(`     ${dim('→')} branch: ${activeSlot.branch}\n`);
+    console.log(`  ${dim('2.')} ${bold('Complete')}  — merge current work into main, then launch new task`);
+    console.log(`     ${dim('→')} runs complete flow, chains back to launch\n`);
+    console.log(`  ${dim('3.')} ${bold('Abandon')}   — discard current branch and work, start fresh`);
+    console.log(`     ${red('⚠ All uncommitted and unmerged work will be lost')}\n`);
+
+    let activeChoice;
+    while (!activeChoice) {
+      const input = await ask(`  ${bold('Select (1-3)')}: `);
+      const n = parseInt(input);
+      if (!isNaN(n) && n >= 1 && n <= 3) activeChoice = n;
+      else console.log(yellow('  Please enter 1, 2, or 3.'));
+    }
+
+    if (activeChoice === 1) {
+      // Continue — open IDE and exit with guidance
+      separator();
+      console.log(`\n  ${green('✓')} Opening existing workspace...\n`);
+      openIDE(activeSlot.worktreePath);
+      console.log(`  ${bold('Resume your task:')}`);
+      console.log(`  ${dim('1.')} Your IDE should be open at: ${cyan(activeSlot.worktreePath)}`);
+      console.log(`  ${dim('2.')} Open a NEW Claude Code session there`);
+      console.log(`  ${dim('3.')} Type: ${cyan('Read TASK.md and continue from where you stopped.')}\n`);
+      separator();
+      rl.close();
+      return;
+    }
+
+    if (activeChoice === 2) {
+      // Complete — run complete.js inline
+      separator();
+      console.log(`\n  ${bold('Running complete flow...')}\n`);
+      rl.close();
+      const { spawn } = require('child_process');
+      const completeScript = path.join(ROOT, '.workflow', 'complete.js');
+      spawn('node', [completeScript], { cwd: ROOT, stdio: 'inherit' });
+      return;
+    }
+
+    if (activeChoice === 3) {
+      // Abandon — delete branch + clear tracking
+      separator();
+      console.log(`\n  ${bold('Abandoning...')}\n`);
+      const { branch } = activeSlot;
+      try {
+        execSync(`git branch -D ${branch}`, { cwd: ROOT, stdio: 'pipe' });
+        console.log(`  ${green('✓')} Local branch deleted`);
+      } catch { console.log(dim('  ! Local branch not found — skipping')); }
+      try {
+        execSync(`git push origin --delete ${branch}`, { cwd: ROOT, stdio: 'pipe' });
+        console.log(`  ${green('✓')} Remote branch deleted`);
+      } catch { console.log(dim('  ! Remote branch not found — skipping')); }
+      guards.clearTrackingSlot(tracking, project, agent, ROOT);
+      console.log(`  ${green('✓')} Tracking cleared — proceeding to new task\n`);
+      // Fall through to normal launch flow
+    }
   }
 
   // MISSING gate — fire if tracking shows MISSING for this agent
