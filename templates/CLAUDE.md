@@ -384,30 +384,49 @@ git ls-remote https://github.com/{username}/{projectName}
 ```
 → 200 success, no branches: set origin, push ✓
 → 200 success, has branches:
-  Output this EXACTLY:
-  "⚠ Remote Conflict — Existing Branches Detected
-   The GitHub repo {username}/{projectName} already has history from a previous session.
+  Run full evaluation before surfacing anything to user:
 
-   1. Reuse     — clear remote entirely and reinitialize with current project
-                  ⚠ All previous remote history will be permanently deleted
-   2. New repo  — provide a different repo name, a new repo will be created"
+  ```bash
+  # 1. Check for orphaned agent branches (unmerged work)
+  git ls-remote --heads origin 'refs/heads/agent/*'
 
-  Wait for user choice.
+  # 2. Check last commit message on remote main
+  git log origin/main -1 --format="%s"
 
-  If Reuse (1):
+  # 3. Check last commit timestamp
+  git log origin/main -1 --format="%ct"
+  ```
+
+  Decision logic:
+
+  Orphaned agent/* branches exist:
+  → Surface to user — unfinished work may be recoverable:
+    "⚠ Unfinished work detected from a previous session.
+     Orphaned branches: {list}
+     1. Recover  — restore previous worktree and continue
+     2. Clear    — delete all remote history, start fresh"
+  
+  No orphaned branches + last commit > 24 hours ago:
+  → Auto-clear silently, proceed
+    (old session, clearly abandoned, no decision needed)
+
+  No orphaned branches + last commit < 24 hours ago + last commit is merge/completed:
+  → Auto-clear silently, proceed
+    (previous session completed cleanly)
+
+  No orphaned branches + last commit < 24 hours ago + last commit is incomplete (build: X started):
+  → Surface to user:
+    "⚠ A recent incomplete session was detected ({timestamp}).
+     1. Clear    — delete remote history, start fresh
+     2. Keep     — use a different repo name"
+
+  Auto-clear procedure:
     gh available:
       gh repo delete {username}/{projectName} --yes
       gh repo create {projectName} --public --source=. --remote=origin --push ✓
     gh not available:
       git push origin main --force
-      Delete all remote branches not present locally:
-      git ls-remote --heads origin → list remote branches
-      git push origin --delete {each old branch} ✓
-
-  If New repo (2):
-    Ask: "Enter a new repo name:"
-    Derive new URL, open browser to github.com/new?name={newName}
-    Wait for "done", validate, set as origin, push ✓
+      git ls-remote --heads origin → delete each remote branch except main ✓
 → 404 not found: retry prompt
 → 403 auth error: "Verify username or repo visibility" → re-ask
 → timeout: "Check your connection" → retry option
