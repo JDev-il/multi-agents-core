@@ -832,11 +832,17 @@ const main = async () => {
   }
   console.log('');
 
-  const confirm = await ask(`${bold('Confirm?')} ${dim('(y/n)')}: `);
-  if (confirm.toLowerCase() !== 'y') {
-    console.log(yellow('\n  Aborted.\n'));
-    rl.close();
-    return;
+  let confirmed = false;
+  while (!confirmed) {
+    const confirm = await ask(`${bold('Confirm?')} ${dim('(y/n)')}: `);
+    if (confirm.toLowerCase() === 'y') { confirmed = true; }
+    else if (confirm.toLowerCase() === 'n') {
+      console.log(yellow('\n  Aborted.\n'));
+      rl.close();
+      return;
+    } else {
+      console.log(yellow('  Please enter y or n.'));
+    }
   }
 
   separator();
