@@ -237,17 +237,17 @@ const checkContracts = () => {
 // ── Scope options builder ─────────────────────────────────────────────────────
 
 const buildScopeOptions = () => {
-  const options = [];
   const bt = config.backend?.type;
+  const options = [];
 
   options.push({ name: 'client', label: 'client' });
 
-  if (bt !== 'integrated') {
-    if (!bt) {
-      options.push({ name: 'backend', label: `backend   ${yellow('⚠ not configured')}`, needsConfig: true });
-    } else {
-      options.push({ name: 'backend', label: 'backend' });
-    }
+  if (bt === 'integrated') {
+    options.push({ name: 'backend', label: 'backend' });
+  } else if (!bt) {
+    options.push({ name: 'backend', label: `backend   ${yellow('⚠ not configured')}`, needsConfig: true });
+  } else {
+    options.push({ name: 'backend', label: 'backend' });
   }
 
   options.push({ name: 'shared', label: 'shared' });
