@@ -384,10 +384,10 @@ const runMissingGate = async (params) => {
   } else {
     // Remote doesn't exist — only reset or new task
     console.log(`  ${dim('1.')} ${bold('Reset')}    — clear this tracking entry, start fresh`);
-    console.log(`     ${dim('→')} Remote branch is already gone — no data loss')}`);
+    console.log(`     ${dim('→')} Remote branch is already gone — no data loss`);
     console.log('');
     console.log(`  ${dim('2.')} ${bold('New task')} — create a new ${agent} branch`);
-    console.log(`     ${dim('→')} Tracking entry will be replaced')}`);
+    console.log(`     ${dim('→')} Tracking entry will be replaced`);
   }
 
   const maxOption = coexistence.remoteExists ? 3 : 2;

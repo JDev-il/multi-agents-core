@@ -578,13 +578,14 @@ const main = async () => {
     console.log(`     ${dim('→')} runs complete flow, chains back to launch\n`);
     console.log(`  ${dim('3.')} ${bold('Abandon')}   — discard current branch and work, start fresh`);
     console.log(`     ${red('⚠ All uncommitted and unmerged work will be lost')}\n`);
+    console.log(`  ${dim('4.')} ${bold('Pick again')} — go back to agent selection\n`);
 
     let activeChoice;
     while (!activeChoice) {
-      const input = await ask(`  ${bold('Select (1-3)')}: `);
+      const input = await ask(`  ${bold('Select (1-4)')}: `);
       const n = parseInt(input);
-      if (!isNaN(n) && n >= 1 && n <= 3) activeChoice = n;
-      else console.log(yellow('  Please enter 1, 2, or 3.'));
+      if (!isNaN(n) && n >= 1 && n <= 4) activeChoice = n;
+      else console.log(yellow('  Please enter 1, 2, 3, or 4.'));
     }
 
     if (activeChoice === 1) {
@@ -612,24 +613,6 @@ const main = async () => {
       return;
     }
 
-    if (activeChoice === 1) {
-      separator();
-      console.log(`\n  ${green('✓')} Opening existing workspace...\n`);
-      openIDE(activeSlot.worktreePath);
-      console.log(`  ${bold('Resume your task:')}`);
-      console.log(`  ${dim('1.')} IDE should be open at: ${cyan(activeSlot.worktreePath)}`);
-      console.log(`  ${dim('2.')} Open a NEW Claude Code session there`);
-      console.log(`  ${dim('3.')} Type: ${cyan('Read TASK.md and continue from where you stopped.')}\n`);
-      separator(); rl.close(); return;
-    }
-    if (activeChoice === 2) {
-      separator();
-      console.log(`\n  ${bold('Running complete flow...')}\n`);
-      rl.close();
-      const { spawn } = require('child_process');
-      spawn('node', [path.join(ROOT, '.workflow', 'complete.js')], { cwd: ROOT, stdio: 'inherit' });
-      return;
-    }
     if (activeChoice === 3) {
       separator();
       console.log(`\n  ${bold('Abandoning...')}\n`);
@@ -640,6 +623,7 @@ const main = async () => {
       console.log(`  ${green('✓')} Tracking cleared\n`);
       continue agentLoop;
     }
+
     if (activeChoice === 4) { continue agentLoop; }
   }
 
