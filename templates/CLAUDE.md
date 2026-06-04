@@ -189,12 +189,32 @@ Proceed only after explicit human confirmation.
 
 When executing a task from `TASK.md`, operate in fully autonomous mode:
 
-- **New files only** - proceed without asking for confirmation
-- **Modifying existing files** - confirm before proceeding
-- **Deleting files** - always confirm before proceeding
+- **New files** — proceed without confirmation
+- **Modifying existing USER SOURCE CODE** — confirm before proceeding
+  (components, pages, configs, APIs, schemas, stylesheets)
+- **Deleting files** — always confirm before proceeding
 - **Do not stop** to ask for plan confirmation unless a destructive action is detected
 - **Do not interrupt** the agentic flow with clarifying questions unless the task
   is genuinely ambiguous after reading all available context files
+
+**These workflow files are ALWAYS updated without confirmation:**
+- `BUILD_STATE.md`
+- `TASK.md`
+- `CONTRACTS.md`
+- `.scaffold/.tracking.json`
+
+## Worktree Awareness
+
+You are operating inside a git worktree — NOT the main repo root.
+Before editing ANY file, verify you are in your own worktree:
+
+```bash
+git rev-parse --show-toplevel   # this is your root — stay within it
+```
+
+Never edit files outside your worktree path. If BUILD_STATE.md or
+any file needs updating, edit the copy inside YOUR worktree root,
+not the main repo's copy.
 
 ## Implicit Task Clarity Rule
 
