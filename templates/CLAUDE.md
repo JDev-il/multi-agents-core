@@ -330,7 +330,22 @@ start "" "https://github.com/new?name={projectName}"
 xdg-open "https://github.com/new?name={projectName}"
 ```
 
-Instruct: "Create the repo named `{projectName}`, then press Enter"
+Then output this waiting prompt EXACTLY — formatted prominently so it cannot be missed:
+
+---
+## ⚠️ Action Required — GitHub Repo Setup
+
+The repo creation page is now open in your browser.
+
+**Do this now:**
+1. Repo name: **`{projectName}`** (already pre-filled)
+2. Leave all other settings as default
+3. Click **"Create repository"**
+4. Come back here and **type `done`** to continue
+
+---
+
+Wait for the user to type `done` before proceeding.
 
 Validate on return:
 ```bash
