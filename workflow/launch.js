@@ -551,11 +551,28 @@ const main = async () => {
 
   separator();
 
+  // ── Flow loop — supports back navigation at every step ───────────────────────
+
+  let project, agent, task, contractsNote;
+
+  flowLoop: while (true) {
+
   // ── Select scope ─────────────────────────────────────────────────────────────
 
-  const scopeOptions  = buildScopeOptions();
-  const selectedScope = await selectRequired('* Project scope:', scopeOptions);
-  const project       = selectedScope.name || selectedScope;
+  const scopeOptions = buildScopeOptions();
+  console.log(`\n${bold('* Project scope:')}`);
+  scopeOptions.forEach((s, i) => console.log(`  ${dim(`${i + 1}.`)} ${s.label || s.name}`));
+  console.log('');
+
+  let selectedScope;
+  while (!selectedScope) {
+    const input = await ask(`  ${bold('Select')} ${dim(`(1-${scopeOptions.length})`)}: `);
+    const n = parseInt(input) - 1;
+    if (!isNaN(n) && n >= 0 && n < scopeOptions.length) selectedScope = scopeOptions[n];
+    else console.log(yellow(`  Please enter a number between 1 and ${scopeOptions.length}.`));
+  }
+
+  project = selectedScope.name || selectedScope;
 
   // Hard stop — backend not configured
   if (selectedScope.needsConfig) {
@@ -577,7 +594,7 @@ const main = async () => {
       missing.push({ item: 'Client LOGIC', detail: 'client logic layer not completed — backend integration contracts may not be defined yet' });
     }
     if (!contracts.hasContent) {
-      missing.push({ item: 'CONTRACTS.md', detail: 'no shared types / DTOs / ORMs defined — backend cannot validate or integrate properly' });
+      missing.push({ item: 'CONTRACTS.md', detail: 'no shared types / DTOs defined' });
     }
 
     if (missing.length > 0) {
@@ -586,33 +603,38 @@ const main = async () => {
         console.log(`  ${dim('→')} ${bold(m.item)}`);
         console.log(`     ${m.detail}\n`);
       });
-      const proceed = await ask(`  ${bold('Proceed anyway?')} ${dim('(y/n)')}: `);
-      if (proceed.toLowerCase() !== 'y') {
-        console.log(yellow('\n  Aborted. Resolve prerequisites first.\n'));
-        rl.close();
-        return;
+      const proceed = await ask(`  ${bold('Proceed anyway or go back?')} ${dim('(proceed/back)')}: `);
+      if (proceed.toLowerCase() === 'back') continue flowLoop;
+      if (proceed.toLowerCase() !== 'proceed' && proceed.toLowerCase() !== 'y') {
+        console.log(yellow('\n  Aborted.\n')); rl.close(); return;
       }
     }
   }
 
-  // ── Select agent (loop — guards re-present list on failure) ─────────────────
+  // ── Select agent (with re-selection loop + back to scope) ────────────────────
 
   const agentOptions = AGENTS[project];
-  let agent;
-  let contractsNote = '';
+  contractsNote = '';
 
   agentLoop: while (true) {
-    agent         = (await (async () => {
-      while (true) {
-        console.log(`\n${bold(`* Agent (${project}):`)}`);
-        showAgentList(project, agentOptions, buildEntries);
-        const input = await ask(`\n  ${bold('Select')} ${dim(`(1-${agentOptions.length})`)}: `);
-        const n = parseInt(input) - 1;
-        if (!isNaN(n) && n >= 0 && n < agentOptions.length) return agentOptions[n];
-        console.log(yellow(`  Please enter a number between 1 and ${agentOptions.length}.`));
-      }
-    })());
+    console.log('');
+
+    // Select agent with back option
+    let agentInput = null;
+    while (agentInput === null) {
+      console.log(`\n${bold(`* Agent (${project}):`)}`);
+      showAgentList(project, agentOptions, buildEntries);
+      console.log(`\n  ${dim('0.')} ${dim('← back to scope selection')}`);
+      const input = await ask(`\n  ${bold('Select')} ${dim(`(0-${agentOptions.length})`)}: `);
+      if (input === '0') { agent = null; break; }
+      const n = parseInt(input) - 1;
+      if (!isNaN(n) && n >= 0 && n < agentOptions.length) { agent = agentOptions[n]; agentInput = agent; }
+      else console.log(yellow(`  Please enter a number between 0 and ${agentOptions.length}.`));
+    }
     contractsNote = '';
+
+    // Back to scope
+    if (agent === null) continue flowLoop;
 
     // Agent already active — decisional block
   const { active, slot: activeSlot } = guards.checkAgentActive(tracking, project, agent);
@@ -764,17 +786,24 @@ const main = async () => {
 
   separator();
   const defaultTask = (AGENT_DESCRIPTIONS[project] || {})[agent] || '';
-  let task = '';
+  task = '';
+  let goBackToAgent = false;
   while (!task) {
     if (defaultTask) {
       console.log(`\n${bold('* Task description')} ${dim(`[default: ${defaultTask}]`)}`);
-      task = await ask(`  → `);
-      if (!task) task = defaultTask;
+      console.log(dim('  (Enter = use default  |  b = back to agent selection)'));
+      const input = await ask(`  → `);
+      if (input.toLowerCase() === 'b') { goBackToAgent = true; break; }
+      task = input || defaultTask;
     } else {
-      task = await ask(`\n${bold('* Task description')}: `);
+      console.log(dim('  (b = back to agent selection)'));
+      const input = await ask(`\n${bold('* Task description')}: `);
+      if (input.toLowerCase() === 'b') { goBackToAgent = true; break; }
+      task = input;
       if (!task) console.log(yellow('  Task description is required.'));
     }
   }
+  if (goBackToAgent) continue flowLoop;
 
   // ── Agent context questions ───────────────────────────────────────────────────
 
@@ -839,17 +868,21 @@ const main = async () => {
 
   let confirmed = false;
   while (!confirmed) {
-    const confirm = await ask(`${bold('Confirm?')} ${dim('(y/n)')}: `);
+    const confirm = await ask(`${bold('Confirm?')} ${dim('(y / n / b = back)')}: `);
     if (confirm.toLowerCase() === 'y') { confirmed = true; }
     else if (confirm.toLowerCase() === 'n') {
       console.log(yellow('\n  Aborted.\n'));
       rl.close();
       return;
+    } else if (confirm.toLowerCase() === 'b') {
+      continue flowLoop;
     } else {
-      console.log(yellow('  Please enter y or n.'));
+      console.log(yellow('  Please enter y, n, or b.'));
     }
   }
 
+  break flowLoop;
+  } // end flowLoop
   separator();
   console.log(`\n${bold('Setting up workspace...')}\n`);
 
