@@ -129,7 +129,7 @@ const AGENTS = {
 // Short descriptions per agent
 const AGENT_DESCRIPTIONS = {
   client: {
-    UI:            'scaffolds the full project structure — always first',
+    UI:            'scaffolds the full project structure',
     LOGIC:         'state management, API integration, custom hooks',
     FORMS:         'form components, validation, submission handling',
     ROUTING:       'page routing, navigation, URL structure',
@@ -137,7 +137,7 @@ const AGENT_DESCRIPTIONS = {
     ACCESSIBILITY: 'a11y compliance, keyboard navigation',
   },
   backend: {
-    API:     'REST/GraphQL endpoints, request/response handling — start here',
+    API:     'REST/GraphQL endpoints, request/response handling',
     LOGIC:   'business logic, services, data processing',
     AUTH:    'authentication, authorization, session management',
     DB:      'database schemas, migrations, queries',
