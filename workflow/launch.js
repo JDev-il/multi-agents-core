@@ -554,6 +554,7 @@ const main = async () => {
   // ── Flow loop — supports back navigation at every step ───────────────────────
 
   let project, agent, task, contractsNote;
+  let timestamp, sanitizedName, worktreeName, branchName, worktreePath;
 
   flowLoop: while (true) {
 
@@ -843,11 +844,11 @@ const main = async () => {
 
   // ── Confirm ───────────────────────────────────────────────────────────────────
 
-  const timestamp     = Date.now();
-  const sanitizedName = config.projectName.toLowerCase().replace(/\s+/g, '-');
-  const worktreeName  = `${project}-${sanitizedName}-${agent.toLowerCase()}-${timestamp}`;
-  const branchName    = `agent/${project}/${agent.toLowerCase()}/${timestamp}`;
-  const worktreePath  = path.join(ROOT, 'worktrees', worktreeName);
+  timestamp     = Date.now();
+  sanitizedName = config.projectName.toLowerCase().replace(/\s+/g, '-');
+  worktreeName  = `${project}-${sanitizedName}-${agent.toLowerCase()}-${timestamp}`;
+  branchName    = `agent/${project}/${agent.toLowerCase()}/${timestamp}`;
+  worktreePath  = path.join(ROOT, 'worktrees', worktreeName);
 
   console.log(`\n${bold('Review:')}\n`);
   console.log(`  ${dim('Project')}  : ${green(project)}`);
