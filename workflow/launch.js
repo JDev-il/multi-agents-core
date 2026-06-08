@@ -555,6 +555,7 @@ const main = async () => {
 
   let project, agent, task, contractsNote;
   let timestamp, sanitizedName, worktreeName, branchName, worktreePath;
+  let contextSection = '';
 
   flowLoop: while (true) {
 
@@ -808,9 +809,9 @@ const main = async () => {
 
   // ── Agent context questions ───────────────────────────────────────────────────
 
-  let answers     = {};
-  let skipped     = [];
-  let contextSection = '';
+  let answers  = {};
+  let skipped  = [];
+  contextSection = '';
 
   if (AGENT_QUESTIONS[agent]) {
     let gathering = true;
