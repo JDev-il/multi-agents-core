@@ -14,6 +14,32 @@ const path         = require('path');
 const { execSync } = require('child_process');
 const guards       = require('./guards');
 
+// ── Prompts (arrow-key navigation) ───────────────────────────────────────────
+
+let prompts;
+try { prompts = require('prompts'); } catch { prompts = null; }
+
+// Arrow-key select — falls back to number input if prompts unavailable
+const arrowSelect = async (message, choices, rl) => {
+  if (prompts && process.stdin.isTTY) {
+    const res = await prompts({
+      type:    'select',
+      name:    'value',
+      message,
+      choices: choices.map((c, i) => ({ title: c.label || c, value: i })),
+    }, { onCancel: () => process.exit(0) });
+    return res.value;
+  }
+  // Fallback: number input
+  return new Promise(resolve => {
+    choices.forEach((c, i) => console.log(`  ${dim(`${i + 1}.`)} ${c.label || c}`));
+    rl.question(`\n  Select (1-${choices.length}): `, ans => {
+      const n = parseInt(ans) - 1;
+      resolve(!isNaN(n) && n >= 0 && n < choices.length ? n : 0);
+    });
+  });
+};
+
 // ── Colors ────────────────────────────────────────────────────────────────────
 
 const c = {
@@ -84,7 +110,16 @@ if (!config.ide) {
 const openIDE = (worktreePath) => {
   const { name, strategy, cmd, app, openArgs, winPaths, linuxPaths } = config.ide;
 
-  if (strategy === 'manual' || !strategy) return null;
+  if (strategy === 'manual' || !strategy) {
+    // Last-resort fallback for JetBrains IDEs — try open -a directly
+    if (app && process.platform === 'darwin') {
+      try {
+        execSync(`open -a "${app}" "${worktreePath}"`, { stdio: 'pipe' });
+        return name;
+      } catch { /* genuinely not installed */ }
+    }
+    return null;
+  }
 
   const args = (openArgs || []).join(' ');
 
@@ -492,9 +527,16 @@ New file creation does not require confirmation.
 ${prompt}
 
 ## How to start
+**Via IDE extension** (VS Code, Cursor, etc.):
 Open a NEW Claude Code chat window and type:
-
 > Read TASK.md and execute the task.
+
+**Via Claude Code CLI:**
+Open your terminal inside this worktree and run:
+\`\`\`
+claude
+\`\`\`
+Then type: > Read TASK.md and execute the task.
 
 Do NOT reuse a previous chat session for this task.
 ${contextSection}
@@ -563,16 +605,8 @@ const main = async () => {
 
   const scopeOptions = buildScopeOptions();
   console.log(`\n${bold('* Project scope:')}`);
-  scopeOptions.forEach((s, i) => console.log(`  ${dim(`${i + 1}.`)} ${s.label || s.name}`));
-  console.log('');
-
-  let selectedScope;
-  while (!selectedScope) {
-    const input = await ask(`  ${bold('Select')} ${dim(`(1-${scopeOptions.length})`)}: `);
-    const n = parseInt(input) - 1;
-    if (!isNaN(n) && n >= 0 && n < scopeOptions.length) selectedScope = scopeOptions[n];
-    else console.log(yellow(`  Please enter a number between 1 and ${scopeOptions.length}.`));
-  }
+  const scopeIdx = await arrowSelect('Select scope', scopeOptions.map(s => ({ label: s.label || s.name })), rl);
+  const selectedScope = scopeOptions[scopeIdx];
 
   project = selectedScope.name || selectedScope;
 
@@ -622,21 +656,18 @@ const main = async () => {
     console.log('');
 
     // Select agent with back option
-    let agentInput = null;
-    while (agentInput === null) {
-      console.log(`\n${bold(`* Agent (${project}):`)}`);
-      showAgentList(project, agentOptions, buildEntries);
-      console.log(`\n  ${dim('0.')} ${dim('← back to scope selection')}`);
-      const input = await ask(`\n  ${bold('Select')} ${dim(`(0-${agentOptions.length})`)}: `);
-      if (input === '0') { agent = null; break; }
-      const n = parseInt(input) - 1;
-      if (!isNaN(n) && n >= 0 && n < agentOptions.length) { agent = agentOptions[n]; agentInput = agent; }
-      else console.log(yellow(`  Please enter a number between 0 and ${agentOptions.length}.`));
-    }
-    contractsNote = '';
+    console.log(`\n${bold(`* Agent (${project}):`)}`);
+    showAgentList(project, agentOptions, buildEntries);
 
-    // Back to scope
-    if (agent === null) continue flowLoop;
+    const agentChoices = [
+      ...agentOptions.map(a => ({ label: `${a}  ${dim(AGENT_DESCRIPTIONS[project]?.[a] || '')}` })),
+      { label: dim('← back to scope selection') },
+    ];
+    const agentIdx = await arrowSelect('Select agent', agentChoices, rl);
+
+    if (agentIdx === agentOptions.length) { agent = null; continue flowLoop; }
+    agent = agentOptions[agentIdx];
+    contractsNote = '';
 
     // Agent already active — decisional block
   const { active, slot: activeSlot } = guards.checkAgentActive(tracking, project, agent);
@@ -868,19 +899,17 @@ const main = async () => {
   }
   console.log('');
 
-  let confirmed = false;
-  while (!confirmed) {
-    const confirm = await ask(`${bold('Confirm?')} ${dim('(y / n / b = back)')}: `);
-    if (confirm.toLowerCase() === 'y') { confirmed = true; }
-    else if (confirm.toLowerCase() === 'n') {
-      console.log(yellow('\n  Aborted.\n'));
-      rl.close();
-      return;
-    } else if (confirm.toLowerCase() === 'b') {
-      continue flowLoop;
-    } else {
-      console.log(yellow('  Please enter y, n, or b.'));
-    }
+  const confirmIdx = await arrowSelect('Confirm?', [
+    { label: `${green('✓')} Confirm — set up workspace` },
+    { label: `${yellow('←')} Back — change something` },
+    { label: `${red('✗')} Abort` },
+  ], rl);
+
+  if (confirmIdx === 1) continue flowLoop;
+  if (confirmIdx === 2) {
+    console.log(yellow('\n  Aborted.\n'));
+    rl.close();
+    return;
   }
 
   break flowLoop;
