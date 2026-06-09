@@ -1013,7 +1013,11 @@ Mark each step complete. Only proceed to the task below when all are checked.
   const vscodeDir = path.join(worktreePath, '.vscode');
   fs.mkdirSync(vscodeDir, { recursive: true });
   const vscodeSettings = {
-    'files.exclude': Object.fromEntries(foldersToHide.map(f => [f, true])),
+    'files.exclude': {
+      ...Object.fromEntries(foldersToHide.map(f => [f, true])),
+      '.idea/': true,
+      '.zed/':  true,
+    },
     'explorer.excludeGitIgnore': true,
   };
   fs.writeFileSync(
@@ -1051,8 +1055,24 @@ ${excludedUrls}
 </project>`, 'utf8');
   console.log(`  ${green('✓')} .idea/ exclusions generated`);
 
-  console.log(`  ${dim('!')} WebStorm/IntelliJ users — exclude these folders manually:`);
-  foldersToHide.forEach(f => console.log(`     ${dim(`File → Settings → Directories → Excluded: ${f}`)}`));
+  // ── Zed .zed/settings.json exclusions ────────────────────────────────────────
+
+  const zedDir = path.join(worktreePath, '.zed');
+  fs.mkdirSync(zedDir, { recursive: true });
+  const zedSettings = {
+    'file_scan_exclusions': [
+      '**/.git',
+      '**/.idea',
+      '**/node_modules',
+      ...foldersToHide.map(f => `**/${f.replace(/\/$/, '')}`),
+    ],
+  };
+  fs.writeFileSync(
+    path.join(zedDir, 'settings.json'),
+    JSON.stringify(zedSettings, null, 2),
+    'utf8'
+  );
+  console.log(`  ${green('✓')} .zed/settings.json generated`);
 
   // ── Write TASK.md ─────────────────────────────────────────────────────────────
 
