@@ -566,6 +566,7 @@ ${contextSection}
 ## When Complete
 1. Commit your work to this branch:
    git add . && git commit -m "feat: <brief description of what was built>"
+   Do NOT add Co-Authored-By or any attribution lines to commit messages.
 
 2. Mark status as COMPLETED above
 

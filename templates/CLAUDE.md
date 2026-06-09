@@ -127,6 +127,7 @@ Awaits explicit human approval before proceeding.
 
 - **Never delete or overwrite** `CONTRACTS.md`, `shared/`, or another agent's files
 - **Never commit directly** to `main` or any protected branch
+- **Never add `Co-Authored-By` to commit messages** — commits are attributed to the project owner only
 - **Never skip the proposal step** when a contract change is required
 - **Stop and flag** any task that requires touching another agent's domain
 
