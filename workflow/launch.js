@@ -971,6 +971,24 @@ Mark each step complete. Only proceed to the task below when all are checked.
   );
   console.log(`  ${green('✓')} TASK.md written`);
 
+  // ── Write package.json proxy ──────────────────────────────────────────────────
+
+  const worktreePackage = {
+    name:    `${config.projectName.toLowerCase().replace(/\s+/g, '-')}-worktree`,
+    version: '1.0.0',
+    private: true,
+    scripts: {
+      launch:   'cd "$(git rev-parse --git-common-dir)/.." && node .workflow/launch.js',
+      complete: 'cd "$(git rev-parse --git-common-dir)/.." && node .workflow/complete.js',
+    },
+  };
+  fs.writeFileSync(
+    path.join(worktreePath, 'package.json'),
+    JSON.stringify(worktreePackage, null, 2),
+    'utf8'
+  );
+  console.log(`  ${green('✓')} package.json proxy written`);
+
   // ── Write .tracking.json slot ─────────────────────────────────────────────────
 
   guards.updateTrackingSlot(tracking, project, agent, {
