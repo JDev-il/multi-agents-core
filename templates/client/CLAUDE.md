@@ -113,6 +113,34 @@ Awaiting  : selection - agent writes confirmed value to @config FRAMEWORK
 ### Level 3 - Both blank
 Hard stop. Config Audit already surfaced the alert.
 
+---
+
+## Framework Scaffold Instructions
+
+Before scaffolding ANY project structure, read the framework-specific instruction file:
+
+```
+client/frameworks/{{FRAMEWORK_FILE}}
+```
+
+Where `{{FRAMEWORK_FILE}}` maps to:
+- Next.js → `nextjs.md`
+- Angular → `angular.md`
+- Vue / Nuxt → `nuxt.md`
+- SvelteKit → `sveltekit.md`
+- Vite + React → `vite-react.md`
+- Remix → `remix.md`
+
+The file contains:
+- Exact scaffold command and flags
+- Where to run it (always from repo root)
+- Expected directory structure after scaffold
+- How to recover if files land in the wrong location
+- How to update `.scaffold/.paths.json` after scaffold
+
+**This is mandatory before writing any files.** Scaffolding without reading this file
+will result in files being created in the wrong location.
+
 **Rules:**
 - Surface each proposal once. Never repeat.
 - Do not infer stack from existing code - confirm if config is missing.

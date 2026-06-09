@@ -118,6 +118,31 @@ Hard stop. Config Audit already surfaced the alert.
 
 ---
 
+## Framework Scaffold Instructions
+
+Before scaffolding ANY project structure, read the framework-specific instruction file:
+
+```
+backend/frameworks/{{FRAMEWORK_FILE}}
+```
+
+Where `{{FRAMEWORK_FILE}}` maps to:
+- Express → `express.md`
+- NestJS → `nestjs.md`
+- Fastify → `fastify.md`
+- FastAPI → `fastapi.md`
+- Django → `django.md`
+
+The file contains:
+- Exact scaffold command and flags
+- Where to run it (always from repo root)
+- Expected directory structure after scaffold
+- How to recover if files land in the wrong location
+- How to update `.scaffold/.paths.json` after scaffold
+
+**This is mandatory before writing any files.** Scaffolding without reading this file
+will result in files being created in the wrong location.
+
 ## Environment Variables
 
 ```
