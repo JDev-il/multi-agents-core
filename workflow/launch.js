@@ -40,6 +40,21 @@ const arrowSelect = async (message, choices, rl) => {
   });
 };
 
+const arrowConfirm = async (message, rl) => {
+  if (prompts && process.stdin.isTTY) {
+    const res = await prompts({
+      type:    'confirm',
+      name:    'value',
+      message,
+      initial: true,
+    }, { onCancel: () => process.exit(0) });
+    return res.value ?? true;
+  }
+  return new Promise(resolve => {
+    rl.question(`${message} (y/n): `, ans => resolve(ans.toLowerCase() !== 'n'));
+  });
+};
+
 // ── Colors ────────────────────────────────────────────────────────────────────
 
 const c = {
@@ -399,14 +414,8 @@ const showAgentList = (scope, agents, buildEntries) => {
 };
 
 const selectRequired = async (prompt, items) => {
-  while (true) {
-    console.log(`\n${bold(prompt)}`);
-    showList(items);
-    const input = await ask(`\n  ${bold('Select')} ${dim(`(1-${items.length})`)}: `);
-    const index = parseInt(input) - 1;
-    if (!isNaN(index) && index >= 0 && index < items.length) return items[index];
-    console.log(yellow(`  Please enter a number between 1 and ${items.length}.`));
-  }
+  const idx = await arrowSelect(prompt, items.map(i => ({ label: typeof i === 'string' ? i : (i.label || i) })), rl);
+  return items[idx];
 };
 
 const separator = () => console.log(`\n${dim('─'.repeat(60))}`);
@@ -446,12 +455,15 @@ const acknowledgeSkipped = async (skipped) => {
   });
   console.log(dim('  The agent will flag all assumptions based on missing context.'));
   console.log(dim('  This may require additional review passes after completion.\n'));
-  console.log(dim('  y = confirm  |  n = abort  |  e = go back and fill in\n'));
 
-  const input = await ask(`  ${bold('Proceed with incomplete context?')} ${dim('(y/n/e)')}: `);
+  const proceedIdx = await arrowSelect('Proceed with incomplete context?', [
+    { label: `${green('✓')} Proceed — agent flags assumptions` },
+    { label: `${yellow('←')} Go back — fill in missing context` },
+    { label: `${red('✗')} Abort` },
+  ], rl);
 
-  if (input.toLowerCase() === 'e') return null; // signal: re-gather
-  if (input.toLowerCase() !== 'y') return false; // signal: abort
+  if (proceedIdx === 1) return null; // signal: re-gather
+  if (proceedIdx === 2) return false; // signal: abort
   return true; // signal: confirmed
 };
 
@@ -657,7 +669,9 @@ const main = async () => {
 
     // Select agent with back option
     console.log(`\n${bold(`* Agent (${project}):`)}`);
-    showAgentList(project, agentOptions, buildEntries);
+
+    // Show numbered list with hints only in non-TTY fallback (prompts handles display in TTY)
+    if (!prompts || !process.stdin.isTTY) showAgentList(project, agentOptions, buildEntries);
 
     const agentChoices = [
       ...agentOptions.map(a => ({ label: `${a}  ${dim(AGENT_DESCRIPTIONS[project]?.[a] || '')}` })),
@@ -687,22 +701,13 @@ const main = async () => {
     console.log(`  ${dim('Launched')}: ${activeSlot.launchedAt ? new Date(activeSlot.launchedAt).toLocaleString() : 'unknown'}`);
     console.log(`  ${dim('Task')}    : ${activeTask}\n`);
 
-    console.log(`  ${dim('1.')} ${bold('Continue')}  — open existing workspace and resume from last point`);
-    console.log(`     ${dim('→')} branch: ${activeSlot.branch}\n`);
-    console.log(`  ${dim('2.')} ${bold('Complete')}  — merge current work into main, then launch new task`);
-    console.log(`     ${dim('→')} runs complete flow, chains back to launch\n`);
-    console.log(`  ${dim('3.')} ${bold('Abandon')}   — discard current branch and work, start fresh`);
-    console.log(`     ${red('⚠ All uncommitted and unmerged work will be lost')}\n`);
-
-    console.log(`  ${dim('4.')} ${bold('Pick again')} — choose a different agent\n`);
-
-    let activeChoice;
-    while (!activeChoice) {
-      const input = await ask(`  ${bold('Select (1-4)')}: `);
-      const n = parseInt(input);
-      if (!isNaN(n) && n >= 1 && n <= 4) activeChoice = n;
-      else console.log(yellow('  Please enter 1, 2, 3, or 4.'));
-    }
+    const activeChoices = [
+      { label: `${bold('Continue')}   — open existing workspace and resume from last point` },
+      { label: `${bold('Complete')}   — merge current work into main, then launch new task` },
+      { label: `${bold('Abandon')}    — discard current branch and work, start fresh  ${red('⚠ unmerged work lost')}` },
+      { label: `${bold('Pick again')} — choose a different agent` },
+    ];
+    const activeChoice = await arrowSelect(`Agent already active — what would you like to do?`, activeChoices, rl) + 1;
 
     if (activeChoice === 1) {
       separator();
@@ -767,8 +772,8 @@ const main = async () => {
       console.log(`\n${red(`  ✗ ${agent} requires an existing ${project} scaffold.`)}`);
       console.log(dim(`  No completed work found in ${project} scope yet.`));
       console.log(dim(`  Tip: start with the UI agent to scaffold the project first.\n`));
-      const repick = await ask(`  ${bold('Pick a different agent?')} ${dim('(y/n)')}: `);
-      if (repick.toLowerCase() === 'y') continue agentLoop;
+      const repick = await arrowConfirm('Pick a different agent?', rl);
+      if (repick) continue agentLoop;
       console.log(yellow('\n  Aborted.\n')); rl.close(); return;
     }
   }
@@ -796,8 +801,8 @@ const main = async () => {
 
   if (CONTRACTS_REQUIRED.includes(agent) && !contracts.hasContent) {
     console.log(`\n${yellow('  ℹ CONTRACTS.md is empty')} ${dim('— no shared types or DTOs defined yet.')}\n`);
-    const assist = await ask(`  ${bold('Would you like the agent to establish contracts for your app?')} ${dim('(y/n)')}: `);
-    if (assist.toLowerCase() === 'y') {
+    const assist = await arrowConfirm('Would you like the agent to establish contracts for your app?', rl);
+    if (assist) {
       contractsNote = 'Before implementing, identify and define the required shared contracts, types, and interfaces in CONTRACTS.md first.';
       console.log(dim('\n  ✓ Agent will establish contracts as the first step.\n'));
     } else {
