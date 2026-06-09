@@ -272,6 +272,43 @@ This file records the current state of every agent slot.
 - If your slot shows `ACTIVE` — you are the active instance. Do not create parallel work.
 - Never write directly to `.tracking.json` — managed by workflow scripts only.
 
+## Paths Protocol
+
+`.scaffold/.paths.json` maps expected and actual framework paths for the project.
+Written at init time with `status: pending`. Updated by agents after scaffolding.
+
+**Schema:**
+```json
+{
+  "client": {
+    "typesDir": {
+      "expected": "client/src/types",
+      "current":  null,
+      "status":   "pending"
+    }
+  },
+  "backend": {
+    "schemasDir": {
+      "expected": "backend/app/schemas",
+      "current":  null,
+      "status":   "pending"
+    }
+  }
+}
+```
+
+**Status values:**
+- `pending` — path not yet created (agent hasn't scaffolded yet)
+- `verified` — agent confirmed path exists on disk
+- `diverged` — actual path differs from expected (update `current` with real path)
+
+**Agent rules:**
+- After scaffolding your framework, read `.scaffold/.paths.json`
+- Verify each path in your scope exists on disk
+- Update `current` with the actual path and set `status: verified` or `diverged`
+- If `diverged` — use the `current` path going forward, not `expected`
+- Other agents reading this file should use `current` if set, fall back to `expected`
+
 ## Remote Setup Protocol
 
 **Context:** `npm run init` commits the project locally but does NOT push
