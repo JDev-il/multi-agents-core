@@ -1023,6 +1023,34 @@ Mark each step complete. Only proceed to the task below when all are checked.
   );
   console.log(`  ${green('✓')} .vscode/settings.json generated`);
 
+  // ── JetBrains .idea/ exclusions ───────────────────────────────────────────────
+
+  const ideaDir = path.join(worktreePath, '.idea');
+  fs.mkdirSync(ideaDir, { recursive: true });
+  const excludedUrls = foldersToHide
+    .map(f => `    <excludeFolder url="file://$MODULE_DIR$/${f.replace(/\/$/, '')}" />`)
+    .join('\n');
+  const ideaModuleXml = `<?xml version="1.0" encoding="UTF-8"?>
+<module type="WEB_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+${excludedUrls}
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>`;
+  fs.writeFileSync(path.join(ideaDir, 'module.iml'), ideaModuleXml, 'utf8');
+  fs.writeFileSync(path.join(ideaDir, 'modules.xml'), `<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/module.iml" filepath="$PROJECT_DIR$/.idea/module.iml" />
+    </modules>
+  </component>
+</project>`, 'utf8');
+  console.log(`  ${green('✓')} .idea/ exclusions generated`);
+
   console.log(`  ${dim('!')} WebStorm/IntelliJ users — exclude these folders manually:`);
   foldersToHide.forEach(f => console.log(`     ${dim(`File → Settings → Directories → Excluded: ${f}`)}`));
 
