@@ -9,6 +9,7 @@
 # @config PROJECT_NAME  :          ← [required]
 # @config FRAMEWORK     :          ← [required if LANGUAGE blank] e.g. NestJS, Django, Laravel
 # @config FRAMEWORK_VERSION :      ← [optional] e.g. 11, 10 — set at init time
+# @config FRAMEWORK_VERSION :      ← [optional] e.g. 11, 10 — set at init time
 # @config LANGUAGE      :          ← [required if FRAMEWORK blank] e.g. TypeScript, Python, C#
 # @config ORM           :          ← [optional] derived from FRAMEWORK if blank
 # @config AUTH          :          ← [optional] derived from FRAMEWORK if blank

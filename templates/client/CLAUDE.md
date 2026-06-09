@@ -9,6 +9,7 @@
 # @config PROJECT_NAME  :          ← [required]
 # @config FRAMEWORK     :          ← [required if LANGUAGE blank] e.g. Next.js, Angular, SvelteKit
 # @config FRAMEWORK_VERSION :      ← [optional] e.g. 22, 21, 20 — set at init time
+# @config FRAMEWORK_VERSION :      ← [optional] e.g. 22, 21, 20 — set at init time
 # @config LANGUAGE      :          ← [required if FRAMEWORK blank] e.g. TypeScript, JavaScript
 # @config UI_LIBRARY    :          ← [optional] derived from FRAMEWORK if blank
 # @config STATE         :          ← [optional] derived from FRAMEWORK if blank
