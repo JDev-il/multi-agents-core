@@ -989,7 +989,7 @@ Mark each step complete. Only proceed to the task below when all are checked.
   );
   console.log(`  ${green('✓')} package.json proxy written`);
 
-  // ── Write .tracking.json slot ─────────────────────────────────────────────────
+  // ── Write .tracking.json slot
 
   guards.updateTrackingSlot(tracking, project, agent, {
     branch:       branchName,
