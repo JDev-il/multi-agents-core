@@ -433,11 +433,20 @@ const gatherAgentContext = async (agent) => {
   const skipped = [];
 
   for (const q of questions) {
-    const answer = await ask(`  ${bold(q.prompt)}\n  ${dim('→')} `);
-    if (!answer.trim()) {
-      skipped.push(q);
+    if (prompts && process.stdin.isTTY) {
+      const res = await prompts({
+        type:    'text',
+        name:    'value',
+        message: q.prompt,
+        hint:    'Enter to skip',
+      }, { onCancel: () => process.exit(0) });
+      const answer = (res.value || '').trim();
+      if (!answer) skipped.push(q);
+      else answers[q.key] = answer;
     } else {
-      answers[q.key] = answer.trim();
+      const answer = await ask(`  ${bold(q.prompt)}\n  ${dim('→')} `);
+      if (!answer.trim()) skipped.push(q);
+      else answers[q.key] = answer.trim();
     }
   }
 
@@ -651,11 +660,11 @@ const main = async () => {
         console.log(`  ${dim('→')} ${bold(m.item)}`);
         console.log(`     ${m.detail}\n`);
       });
-      const proceed = await ask(`  ${bold('Proceed anyway or go back?')} ${dim('(proceed/back)')}: `);
-      if (proceed.toLowerCase() === 'back') continue flowLoop;
-      if (proceed.toLowerCase() !== 'proceed' && proceed.toLowerCase() !== 'y') {
-        console.log(yellow('\n  Aborted.\n')); rl.close(); return;
-      }
+      const proceedIdx = await arrowSelect('Backend prerequisites not met:', [
+        { label: `${green('→')} Proceed anyway` },
+        { label: `${yellow('←')} Go back — pick a different scope` },
+      ], rl);
+      if (proceedIdx === 1) continue flowLoop;
     }
   }
 
@@ -792,8 +801,11 @@ const main = async () => {
         console.log(`  ${dim('→')} ${bold(`${project} / ${req}`)}  ${dim('|')}  ${status}`);
       });
       console.log('');
-      const repick = await ask(`  ${bold('Proceed anyway or pick a different agent?')} ${dim('(proceed/pick)')}: `);
-      if (repick.toLowerCase() === 'pick') continue agentLoop;
+      const repickIdx = await arrowSelect('Prerequisites not met:', [
+        { label: `${green('→')} Proceed anyway` },
+        { label: `${yellow('←')} Pick a different agent` },
+      ], rl);
+      if (repickIdx === 1) continue agentLoop;
     }
   }
 
@@ -825,23 +837,40 @@ const main = async () => {
   separator();
   const defaultTask = (AGENT_DESCRIPTIONS[project] || {})[agent] || '';
   task = '';
-  let goBackToAgent = false;
-  while (!task) {
-    if (defaultTask) {
-      console.log(`\n${bold('* Task description')} ${dim(`[default: ${defaultTask}]`)}`);
-      console.log(dim('  (Enter = use default  |  b = back to agent selection)'));
-      const input = await ask(`  → `);
-      if (input.toLowerCase() === 'b') { goBackToAgent = true; break; }
-      task = input || defaultTask;
-    } else {
-      console.log(dim('  (b = back to agent selection)'));
-      const input = await ask(`\n${bold('* Task description')}: `);
-      if (input.toLowerCase() === 'b') { goBackToAgent = true; break; }
-      task = input;
-      if (!task) console.log(yellow('  Task description is required.'));
+
+  if (prompts && process.stdin.isTTY) {
+    const res = await prompts({
+      type:    'text',
+      name:    'value',
+      message: '* Task description',
+      initial: defaultTask,
+      hint:    defaultTask ? `default: ${defaultTask}` : '',
+    }, { onCancel: () => process.exit(0) });
+
+    if (res.value === undefined) continue flowLoop; // Esc = back
+    task = res.value || defaultTask;
+    if (!task) task = defaultTask;
+  } else {
+    let goBackToAgent = false;
+    while (!task) {
+      if (defaultTask) {
+        console.log(`\n${bold('* Task description')} ${dim(`[default: ${defaultTask}]`)}`);
+        console.log(dim('  (Enter = use default  |  b = back to agent selection)'));
+        const input = await ask(`  → `);
+        if (input.toLowerCase() === 'b') { goBackToAgent = true; break; }
+        task = input || defaultTask;
+      } else {
+        console.log(dim('  (b = back to agent selection)'));
+        const input = await ask(`\n${bold('* Task description')}: `);
+        if (input.toLowerCase() === 'b') { goBackToAgent = true; break; }
+        task = input;
+        if (!task) console.log(yellow('  Task description is required.'));
+      }
     }
+    if (goBackToAgent) continue flowLoop;
   }
-  if (goBackToAgent) continue flowLoop;
+
+  if (!task) continue flowLoop;
 
   // ── Agent context questions ───────────────────────────────────────────────────
 
