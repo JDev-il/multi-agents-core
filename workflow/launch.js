@@ -1070,6 +1070,8 @@ ${excludedUrls}
       '**/.idea',
       '**/.agents',
       '**/.frameworks',
+      '**/.agents',
+      '**/.frameworks',
       '**/node_modules',
       ...foldersToHide.map(f => `**/${f.replace(/\/$/, '')}`),
     ],
