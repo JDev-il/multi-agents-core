@@ -1015,12 +1015,14 @@ Mark each step complete. Only proceed to the task below when all are checked.
   const vscodeSettings = {
     'files.exclude': {
       ...Object.fromEntries(foldersToHide.map(f => [f, true])),
-      '.idea/':        true,
-      '.zed/':         true,
-      '.agents/':      true,
-      '.frameworks/':  true,
+      '.idea/':          true,
+      '.zed/':           true,
+      '.agents/':        true,
+      '.frameworks/':    true,
       '**/node_modules': true,
-      '.zed/':  true,
+    },
+    'search.exclude': {
+      '**/node_modules': true,
     },
     'explorer.excludeGitIgnore': true,
   };
@@ -1068,8 +1070,6 @@ ${excludedUrls}
     'file_scan_exclusions': [
       '**/.git',
       '**/.idea',
-      '**/.agents',
-      '**/.frameworks',
       '**/.agents',
       '**/.frameworks',
       '**/node_modules',
