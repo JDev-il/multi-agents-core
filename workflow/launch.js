@@ -1190,7 +1190,8 @@ ${excludedUrls}
   console.log(`\n${bold('  Workspace is set up and ready.')}`);
   console.log(dim(`  Worktree: worktrees/${worktreeName}\n`));
   console.log(`  ${yellow('⚠')}  ${bold('Open a NEW Claude Code session once your IDE is ready.')}`);
-  console.log(dim('     Do NOT reuse a previous session — the agent needs a clean context.\n'));
+  console.log(dim('     Do NOT reuse a previous session — the agent needs a clean context.'));
+  console.log(dim(`     Tip: type ${cyan('"go"')} or ${cyan('"start"')} to kick it off.\n`));
 
   const openNow = await arrowConfirm('Open workspace now?', rl);
 
