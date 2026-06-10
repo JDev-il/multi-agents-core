@@ -1015,7 +1015,11 @@ Mark each step complete. Only proceed to the task below when all are checked.
   const vscodeSettings = {
     'files.exclude': {
       ...Object.fromEntries(foldersToHide.map(f => [f, true])),
-      '.idea/': true,
+      '.idea/':        true,
+      '.zed/':         true,
+      '.agents/':      true,
+      '.frameworks/':  true,
+      '**/node_modules': true,
       '.zed/':  true,
     },
     'explorer.excludeGitIgnore': true,
@@ -1031,7 +1035,8 @@ Mark each step complete. Only proceed to the task below when all are checked.
 
   const ideaDir = path.join(worktreePath, '.idea');
   fs.mkdirSync(ideaDir, { recursive: true });
-  const excludedUrls = foldersToHide
+  const allExcluded = [...foldersToHide, '.agents/', '.frameworks/', 'node_modules/'];
+  const excludedUrls = allExcluded
     .map(f => `    <excludeFolder url="file://$MODULE_DIR$/${f.replace(/\/$/, '')}" />`)
     .join('\n');
   const ideaModuleXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -1063,6 +1068,8 @@ ${excludedUrls}
     'file_scan_exclusions': [
       '**/.git',
       '**/.idea',
+      '**/.agents',
+      '**/.frameworks',
       '**/node_modules',
       ...foldersToHide.map(f => `**/${f.replace(/\/$/, '')}`),
     ],
