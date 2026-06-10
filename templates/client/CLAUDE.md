@@ -122,7 +122,7 @@ Hard stop. Config Audit already surfaced the alert.
 Before scaffolding ANY project structure, read the framework-specific instruction file:
 
 ```
-client/frameworks/{{FRAMEWORK_FILE}}
+.frameworks/client/{{FRAMEWORK_FILE}}
 ```
 
 Where `{{FRAMEWORK_FILE}}` maps to:
@@ -186,5 +186,5 @@ When initializing a framework into `client/`, the directory already contains
 - Never use CLI scaffold tools (create-next-app, nuxi, etc.) — they refuse non-empty directories
 - Always create the project structure manually: package.json, tsconfig.json, config files, src/ folders
 - Never create temp directories of any kind
-- Never overwrite or delete `CLAUDE.md` or `agents/`
+- Never overwrite or delete `CLAUDE.md`, `.agents/client/` or `.frameworks/client/`
 - Delete any leftover temp folders from previous runs before starting

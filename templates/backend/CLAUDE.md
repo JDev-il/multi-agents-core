@@ -125,7 +125,7 @@ Hard stop. Config Audit already surfaced the alert.
 Before scaffolding ANY project structure, read the framework-specific instruction file:
 
 ```
-backend/frameworks/{{FRAMEWORK_FILE}}
+.frameworks/backend/{{FRAMEWORK_FILE}}
 ```
 
 Where `{{FRAMEWORK_FILE}}` maps to:
@@ -173,7 +173,7 @@ When any agent initializes a framework or installs dependencies into `backend/`,
 the directory already contains coordination files (`CLAUDE.md`, `agents/`).
 
 Rules:
-- Never overwrite or delete `CLAUDE.md` or `agents/`
+- Never overwrite or delete `CLAUDE.md`, `.agents/backend/` or `.frameworks/backend/`
 - When using framework CLI tools (e.g. nest new, django-admin startproject),
   use the appropriate flags or scaffold into a temp directory first,
   then move generated files into `backend/` preserving existing files
