@@ -1190,8 +1190,7 @@ ${excludedUrls}
   console.log(`\n${bold('  Workspace is set up and ready.')}`);
   console.log(dim(`  Worktree: worktrees/${worktreeName}\n`));
   console.log(`  ${yellow('⚠')}  ${bold('Open a NEW Claude Code session once your IDE is ready.')}`);
-  console.log(dim('     Do NOT reuse a previous session. Type exactly:'));
-  console.log(`     ${cyan('Read TASK.md and execute the task.')}\n`);
+  console.log(dim('     Do NOT reuse a previous session — the agent needs a clean context.\n'));
 
   const openNow = await arrowConfirm('Open workspace now?', rl);
 
@@ -1203,8 +1202,7 @@ ${excludedUrls}
     console.log(`     ${cyan(worktreePath)}\n`);
     console.log(`  ${bold('2.')} Open a ${bold('NEW')} Claude Code session.`);
     console.log(dim('     Do NOT reuse a previous session.\n'));
-    console.log(`  ${bold('3.')} In the chat, type:`);
-    console.log(`     ${cyan('Read TASK.md and execute the task.')}\n`);
+    console.log(`  ${bold('3.')} Start the session and let the agent run.\n`);
     separator();
     console.log('');
     rl.close();
@@ -1229,8 +1227,7 @@ ${excludedUrls}
   console.log(dim('     If not, open it manually at the path above.\n'));
   console.log(`  ${bold('2.')} ${bold(yellow('Open a NEW Claude Code session.'))}`);
   console.log(dim('     Do NOT reuse a previous session.\n'));
-  console.log(`  ${bold('3.')} In the chat, type:`);
-  console.log(`     ${cyan('Read TASK.md and execute the task.')}\n`);
+  console.log(`  ${bold('3.')} Start the session and let the agent run.\n`);
   console.log(`  ${bold('4.')} When the agent completes the task:`);
   console.log(dim('     Check off the Definition of Done items in TASK.md.'));
   console.log(dim('     Mark status as COMPLETED before starting the next task.\n'));
