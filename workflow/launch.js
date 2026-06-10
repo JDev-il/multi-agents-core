@@ -709,8 +709,27 @@ const main = async () => {
     // Show numbered list with hints only in non-TTY fallback (prompts handles display in TTY)
     if (!prompts || !process.stdin.isTTY) showAgentList(project, agentOptions, buildEntries);
 
+    // Build agent choices with recommendation tags
+    const completedAgents = buildEntries
+      .filter(e => e.scope === project && e.status === 'COMPLETED')
+      .map(e => e.agent);
+    const prereqMap = AGENT_PREREQUISITES[project] || {};
+    let recommendedAgent = null;
+    for (const a of agentOptions) {
+      if (completedAgents.includes(a)) continue;
+      const reqs = prereqMap[a] || [];
+      if (reqs.every(r => completedAgents.includes(r))) { recommendedAgent = a; break; }
+    }
+
     const agentChoices = [
-      ...agentOptions.map(a => ({ label: `${a}  ${dim(AGENT_DESCRIPTIONS[project]?.[a] || '')}` })),
+      ...agentOptions.map(a => {
+        const desc = dim(`  ${AGENT_DESCRIPTIONS[project]?.[a] || ''}`);
+        const tag  = a === recommendedAgent
+          ? cyan(completedAgents.length === 0 ? '  ← start here' : '  ← next step')
+          : '';
+        const label = a === recommendedAgent ? bold(a) : a;
+        return { label: `${label}${tag}${desc}` };
+      }),
       { label: dim('← back to scope selection') },
     ];
     const agentIdx = await arrowSelect('Select agent', agentChoices, rl);
