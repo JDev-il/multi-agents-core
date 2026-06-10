@@ -1165,6 +1165,33 @@ ${excludedUrls}
     }
   }
 
+  // ── Ready to open workspace? ──────────────────────────────────────────────────
+
+  separator();
+  console.log(`\n${bold('  Workspace is set up and ready.')}`);
+  console.log(dim(`  Worktree: worktrees/${worktreeName}\n`));
+  console.log(`  ${yellow('⚠')}  ${bold('Open a NEW Claude Code session once your IDE is ready.')}`);
+  console.log(dim('     Do NOT reuse a previous session. Type exactly:'));
+  console.log(`     ${cyan('Read TASK.md and execute the task.')}\n`);
+
+  const openNow = await arrowConfirm('Open workspace now?', rl);
+
+  if (!openNow) {
+    console.clear();
+    separator();
+    console.log(`\n${bold(yellow('  Workspace saved — resume when ready:'))}\n`);
+    console.log(`  ${bold('1.')} Open your IDE at:`);
+    console.log(`     ${cyan(worktreePath)}\n`);
+    console.log(`  ${bold('2.')} Open a ${bold('NEW')} Claude Code session.`);
+    console.log(dim('     Do NOT reuse a previous session.\n'));
+    console.log(`  ${bold('3.')} In the chat, type:`);
+    console.log(`     ${cyan('Read TASK.md and execute the task.')}\n`);
+    separator();
+    console.log('');
+    rl.close();
+    return;
+  }
+
   // ── Open IDE ──────────────────────────────────────────────────────────────────
 
   const openedIDE = openIDE(worktreePath);
@@ -1179,10 +1206,9 @@ ${excludedUrls}
 
   separator();
   console.log(`\n${bold(green('  Workspace ready!'))}\n`);
-  console.log(`  ${bold('What to do next:')}\n`);
   console.log(`  ${bold('1.')} Your IDE should be open at: ${cyan(`worktrees/${worktreeName}`)}`);
   console.log(dim('     If not, open it manually at the path above.\n'));
-  console.log(`  ${bold('2.')} Open a ${bold('NEW')} Claude Code chat window.`);
+  console.log(`  ${bold('2.')} ${bold(yellow('Open a NEW Claude Code session.'))}`);
   console.log(dim('     Do NOT reuse a previous session.\n'));
   console.log(`  ${bold('3.')} In the chat, type:`);
   console.log(`     ${cyan('Read TASK.md and execute the task.')}\n`);
