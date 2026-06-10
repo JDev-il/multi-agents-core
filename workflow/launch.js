@@ -200,6 +200,30 @@ const AGENT_DESCRIPTIONS = {
   },
 };
 
+// Scope constraints appended to every task description — agent cannot bypass its own task
+const AGENT_TASK_SUFFIX = {
+  client: {
+    UI:            ' — scaffold project structure and component shells ONLY. No business logic, state management, or API calls. Use <!-- TODO: LOGIC agent --> where logic will be needed.',
+    LOGIC:         ' — implement state, services, and API integration ONLY. No UI markup or styling changes. No route definitions.',
+    FORMS:         ' — implement form components, validation rules, and submission handlers ONLY. No UI redesign. No state outside forms.',
+    ROUTING:       ' — implement routes, guards, lazy loading, and navigation ONLY. No business logic. No UI changes.',
+    TESTING:       ' — write unit and integration tests ONLY. Do not modify production code except to fix bugs directly revealed by failing tests.',
+    ACCESSIBILITY: ' — implement ARIA attributes, keyboard navigation, and semantic HTML ONLY. No visual redesign. No business logic changes.',
+  },
+  backend: {
+    API:     ' — implement route handlers, controllers, and DTOs ONLY. No business logic services. No auth middleware. No database queries.',
+    LOGIC:   ' — implement services and business logic ONLY. No route definitions. No auth middleware. No database schema changes.',
+    AUTH:    ' — implement authentication and authorization ONLY. No business logic. No database schema changes. No API route restructuring.',
+    DB:      ' — implement database schema, migrations, and queries ONLY. No business logic. No API handlers. No auth.',
+    TESTING: ' — write unit and integration tests ONLY. Do not modify production code except to fix bugs directly revealed by failing tests.',
+    EVENTS:  ' — implement event queues, pub/sub, and webhooks ONLY. No business logic. No API endpoint changes.',
+    JOBS:    ' — implement background jobs and scheduled tasks ONLY. No business logic services. No API endpoints.',
+  },
+  shared: {
+    SECURITY: ' — implement shared auth utilities, encryption, and input validation ONLY. No scope-specific business logic.',
+  },
+};
+
 // Agents that require an existing scope scaffold before they can run
 const SCAFFOLD_REQUIRED = ['LOGIC', 'FORMS', 'ROUTING', 'TESTING', 'ACCESSIBILITY', 'AUTH', 'DB', 'EVENTS', 'JOBS'];
 
@@ -528,9 +552,11 @@ const generateContextSection = (answers, skipped) => {
 
 const generateTaskMd = ({ project, agent, task, branchName, contextSection, remoteSetupSection }) => {
   const dod    = (DOD_ITEMS[agent] || []).map(item => `- [ ] ${item}`).join('\n');
+  const scopeSuffix = (AGENT_TASK_SUFFIX[project] || {})[agent] || '';
+  const taskForTaskMd = `${task}${scopeSuffix}`;
   const prompt = project === 'shared'
-    ? `Use shared/agents/${agent}.md. Task: ${task}`
-    : `Use agents/${agent}.md. Task: ${task}`;
+    ? `Use .agents/shared/${agent}.md. Task: ${taskForTaskMd}`
+    : `Use .agents/${project}/${agent}.md. Task: ${taskForTaskMd}`;
 
   return `# TASK - ${config.projectName}
 
