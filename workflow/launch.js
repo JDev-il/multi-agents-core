@@ -19,7 +19,7 @@ const guards       = require('./guards');
 let prompts;
 try { prompts = require('prompts'); } catch { prompts = null; }
 
-// Arrow-key select — falls back to number input if prompts unavailable
+// Arrow-key select - falls back to number input if prompts unavailable
 const arrowSelect = async (message, choices, rl) => {
   if (prompts && process.stdin.isTTY) {
     const res = await prompts({
@@ -126,7 +126,7 @@ const openIDE = (worktreePath) => {
   const { name, strategy, cmd, app, openArgs, winPaths, linuxPaths } = config.ide;
 
   if (strategy === 'manual' || !strategy) {
-    // Last-resort fallback for JetBrains IDEs — try open -a directly
+    // Last-resort fallback for JetBrains IDEs - try open -a directly
     if (app && process.platform === 'darwin') {
       try {
         execSync(`open -a "${app}" "${worktreePath}"`, { stdio: 'pipe' });
@@ -200,27 +200,27 @@ const AGENT_DESCRIPTIONS = {
   },
 };
 
-// Scope constraints appended to every task description — agent cannot bypass its own task
+// Scope constraints appended to every task description - agent cannot bypass its own task
 const AGENT_TASK_SUFFIX = {
   client: {
-    UI:            ' — scaffold project structure and component shells ONLY. No business logic, state management, or API calls. Use <!-- TODO: LOGIC agent --> where logic will be needed.',
-    LOGIC:         ' — implement state, services, and API integration ONLY. No UI markup or styling changes. No route definitions.',
-    FORMS:         ' — implement form components, validation rules, and submission handlers ONLY. No UI redesign. No state outside forms.',
-    ROUTING:       ' — implement routes, guards, lazy loading, and navigation ONLY. No business logic. No UI changes.',
-    TESTING:       ' — write unit and integration tests ONLY. Do not modify production code except to fix bugs directly revealed by failing tests.',
-    ACCESSIBILITY: ' — implement ARIA attributes, keyboard navigation, and semantic HTML ONLY. No visual redesign. No business logic changes.',
+    UI:            ' - scaffold project structure and component shells ONLY. No business logic, state management, or API calls. Use <!-- TODO: LOGIC agent --> where logic will be needed.',
+    LOGIC:         ' - implement state, services, and API integration ONLY. No UI markup or styling changes. No route definitions.',
+    FORMS:         ' - implement form components, validation rules, and submission handlers ONLY. No UI redesign. No state outside forms.',
+    ROUTING:       ' - implement routes, guards, lazy loading, and navigation ONLY. No business logic. No UI changes.',
+    TESTING:       ' - write unit and integration tests ONLY. Do not modify production code except to fix bugs directly revealed by failing tests.',
+    ACCESSIBILITY: ' - implement ARIA attributes, keyboard navigation, and semantic HTML ONLY. No visual redesign. No business logic changes.',
   },
   backend: {
-    API:     ' — implement route handlers, controllers, and DTOs ONLY. No business logic services. No auth middleware. No database queries.',
-    LOGIC:   ' — implement services and business logic ONLY. No route definitions. No auth middleware. No database schema changes.',
-    AUTH:    ' — implement authentication and authorization ONLY. No business logic. No database schema changes. No API route restructuring.',
-    DB:      ' — implement database schema, migrations, and queries ONLY. No business logic. No API handlers. No auth.',
-    TESTING: ' — write unit and integration tests ONLY. Do not modify production code except to fix bugs directly revealed by failing tests.',
-    EVENTS:  ' — implement event queues, pub/sub, and webhooks ONLY. No business logic. No API endpoint changes.',
-    JOBS:    ' — implement background jobs and scheduled tasks ONLY. No business logic services. No API endpoints.',
+    API:     ' - implement route handlers, controllers, and DTOs ONLY. No business logic services. No auth middleware. No database queries.',
+    LOGIC:   ' - implement services and business logic ONLY. No route definitions. No auth middleware. No database schema changes.',
+    AUTH:    ' - implement authentication and authorization ONLY. No business logic. No database schema changes. No API route restructuring.',
+    DB:      ' - implement database schema, migrations, and queries ONLY. No business logic. No API handlers. No auth.',
+    TESTING: ' - write unit and integration tests ONLY. Do not modify production code except to fix bugs directly revealed by failing tests.',
+    EVENTS:  ' - implement event queues, pub/sub, and webhooks ONLY. No business logic. No API endpoint changes.',
+    JOBS:    ' - implement background jobs and scheduled tasks ONLY. No business logic services. No API endpoints.',
   },
   shared: {
-    SECURITY: ' — implement shared auth utilities, encryption, and input validation ONLY. No scope-specific business logic.',
+    SECURITY: ' - implement shared auth utilities, encryption, and input validation ONLY. No scope-specific business logic.',
   },
 };
 
@@ -374,7 +374,7 @@ const displayProjectStatus = (entries, contracts) => {
 
   const bt = config.backend?.type;
 
-  console.log(`\n${bold('Project Status')} ${dim('—')} ${bold(config.projectName)}\n`);
+  console.log(`\n${bold('Project Status')} ${dim('-')} ${bold(config.projectName)}\n`);
   console.log(`  ${bold('client')}    ${renderScope('client')}`);
   console.log(`  ${bold('shared')}    ${renderScope('shared')}  ${dim('|')}  ${contractsNote}`);
 
@@ -451,7 +451,7 @@ const gatherAgentContext = async (agent) => {
   if (!questions) return { answers: {}, skipped: [] };
 
   separator();
-  console.log(`\n${bold(blue('Agent context'))} ${dim('— press Enter to skip any question')}\n`);
+  console.log(`\n${bold(blue('Agent context'))} ${dim('- press Enter to skip any question')}\n`);
 
   const answers = {};
   const skipped = [];
@@ -481,7 +481,7 @@ const gatherAgentContext = async (agent) => {
 
 const acknowledgeSkipped = async (skipped) => {
   separator();
-  console.log(`\n${yellow('  ⚠ Incomplete context — the following was skipped:')}\n`);
+  console.log(`\n${yellow('  ⚠ Incomplete context - the following was skipped:')}\n`);
   skipped.forEach(q => {
     console.log(`  ${dim('→')} ${bold(q.prompt)}`);
     console.log(`     ${red('Risk:')} ${q.consequence}\n`);
@@ -490,8 +490,8 @@ const acknowledgeSkipped = async (skipped) => {
   console.log(dim('  This may require additional review passes after completion.\n'));
 
   const proceedIdx = await arrowSelect('Proceed with incomplete context?', [
-    { label: `${green('✓')} Proceed — agent flags assumptions` },
-    { label: `${yellow('←')} Go back — fill in missing context` },
+    { label: `${green('✓')} Proceed - agent flags assumptions` },
+    { label: `${yellow('←')} Go back - fill in missing context` },
     { label: `${red('✗')} Abort` },
   ], rl);
 
@@ -540,9 +540,9 @@ const generateContextSection = (answers, skipped) => {
   }
 
   if (skipped.length > 0) {
-    section += '\n**⚠ Missing — user acknowledged:**\n';
+    section += '\n**⚠ Missing - user acknowledged:**\n';
     skipped.forEach(q => {
-      section += `- ${q.prompt} _(skipped — risk: ${q.consequence})_\n`;
+      section += `- ${q.prompt} _(skipped - risk: ${q.consequence})_\n`;
     });
     section += '\n**Flag all assumptions explicitly before implementing.**\n';
   }
@@ -596,7 +596,7 @@ ${contextSection}
 
 2. Mark status as COMPLETED above
 
-3. YOU (the agent) must execute this via bash now — do not instruct the user:
+3. YOU (the agent) must execute this via bash now - do not instruct the user:
 \`\`\`
 npm run complete
 \`\`\`
@@ -641,7 +641,7 @@ const main = async () => {
 
   separator();
 
-  // ── Flow loop — supports back navigation at every step ───────────────────────
+  // ── Flow loop - supports back navigation at every step ───────────────────────
 
   let project, agent, task, contractsNote;
   let timestamp, sanitizedName, worktreeName, branchName, worktreePath;
@@ -658,7 +658,7 @@ const main = async () => {
 
   project = selectedScope.name || selectedScope;
 
-  // Hard stop — backend not configured
+  // Hard stop - backend not configured
   if (selectedScope.needsConfig) {
     console.log(`\n${red('  Backend is not configured.')}`);
     console.log(dim('  Re-run npm run init to add backend configuration.\n'));
@@ -666,16 +666,16 @@ const main = async () => {
     return;
   }
 
-  // Soft gate — backend selected but missing prerequisites
+  // Soft gate - backend selected but missing prerequisites
   if (project === 'backend') {
     const clientCompleted = buildEntries.filter(e => e.scope === 'client' && e.status === 'COMPLETED');
     const clientLogicDone = clientCompleted.some(e => e.agent === 'LOGIC');
     const missing = [];
 
     if (clientCompleted.length === 0) {
-      missing.push({ item: 'Client scope', detail: 'no completed client work found — backend has nothing to integrate against' });
+      missing.push({ item: 'Client scope', detail: 'no completed client work found - backend has nothing to integrate against' });
     } else if (!clientLogicDone) {
-      missing.push({ item: 'Client LOGIC', detail: 'client logic layer not completed — backend integration contracts may not be defined yet' });
+      missing.push({ item: 'Client LOGIC', detail: 'client logic layer not completed - backend integration contracts may not be defined yet' });
     }
     if (!contracts.hasContent) {
       missing.push({ item: 'CONTRACTS.md', detail: 'no shared types / DTOs defined' });
@@ -689,7 +689,7 @@ const main = async () => {
       });
       const proceedIdx = await arrowSelect('Backend prerequisites not met:', [
         { label: `${green('→')} Proceed anyway` },
-        { label: `${yellow('←')} Go back — pick a different scope` },
+        { label: `${yellow('←')} Go back - pick a different scope` },
       ], rl);
       if (proceedIdx === 1) continue flowLoop;
     }
@@ -738,7 +738,7 @@ const main = async () => {
     agent = agentOptions[agentIdx];
     contractsNote = '';
 
-    // Agent already active — decisional block
+    // Agent already active - decisional block
   const { active, slot: activeSlot } = guards.checkAgentActive(tracking, project, agent);
   if (active) {
     // Read task from TASK.md if available
@@ -757,12 +757,12 @@ const main = async () => {
     console.log(`  ${dim('Task')}    : ${activeTask}\n`);
 
     const activeChoices = [
-      { label: `${bold('Continue')}   — open existing workspace and resume from last point` },
-      { label: `${bold('Complete')}   — merge current work into main, then launch new task` },
-      { label: `${bold('Abandon')}    — discard current branch and work, start fresh  ${red('⚠ unmerged work lost')}` },
-      { label: `${bold('Pick again')} — choose a different agent` },
+      { label: `${bold('Continue')}   - open existing workspace and resume from last point` },
+      { label: `${bold('Complete')}   - merge current work into main, then launch new task` },
+      { label: `${bold('Abandon')}    - discard current branch and work, start fresh  ${red('⚠ unmerged work lost')}` },
+      { label: `${bold('Pick again')} - choose a different agent` },
     ];
-    const activeChoice = await arrowSelect(`Agent already active — what would you like to do?`, activeChoices, rl) + 1;
+    const activeChoice = await arrowSelect(`Agent already active - what would you like to do?`, activeChoices, rl) + 1;
 
     if (activeChoice === 1) {
       separator();
@@ -858,7 +858,7 @@ const main = async () => {
   // Contracts check
 
   if (CONTRACTS_REQUIRED.includes(agent) && !contracts.hasContent) {
-    console.log(`\n${yellow('  ℹ CONTRACTS.md is empty')} ${dim('— no shared types or DTOs defined yet.')}\n`);
+    console.log(`\n${yellow('  ℹ CONTRACTS.md is empty')} ${dim('- no shared types or DTOs defined yet.')}\n`);
     const assist = await arrowConfirm('Would you like the agent to establish contracts for your app?', rl);
     if (assist) {
       contractsNote = 'Before implementing, identify and define the required shared contracts, types, and interfaces in CONTRACTS.md first.';
@@ -933,13 +933,13 @@ const main = async () => {
 
       if (skipped.length > 0) {
         const ack = await acknowledgeSkipped(skipped);
-        if (ack === null) continue;   // 'e' — go back and re-gather
-        if (ack === false) {          // 'n' — abort
+        if (ack === null) continue;   // 'e' - go back and re-gather
+        if (ack === false) {          // 'n' - abort
           console.log(yellow('\n  Aborted.\n'));
           rl.close();
           return;
         }
-        gathering = false;            // 'confirm' — proceed
+        gathering = false;            // 'confirm' - proceed
       } else {
         gathering = false;
       }
@@ -980,8 +980,8 @@ const main = async () => {
   console.log('');
 
   const confirmIdx = await arrowSelect('Confirm?', [
-    { label: `${green('✓')} Confirm — set up workspace` },
-    { label: `${yellow('←')} Back — change something` },
+    { label: `${green('✓')} Confirm - set up workspace` },
+    { label: `${yellow('←')} Back - change something` },
     { label: `${red('✗')} Abort` },
   ], rl);
 
@@ -1011,7 +1011,7 @@ Complete ALL steps below BEFORE starting task implementation.
 
 - [ ] Check: \`git remote get-url origin\`
 - [ ] Detect gh CLI: \`gh auth status\`
-- [ ] Configure remote (gh create or manual — see Root CLAUDE.md)
+- [ ] Configure remote (gh create or manual - see Root CLAUDE.md)
 - [ ] Validate: \`git ls-remote origin HEAD\`
 - [ ] Push: \`git push -u origin main\`
 - [ ] Delete \`.scaffold/.remote-setup-needed\`
@@ -1022,7 +1022,7 @@ Mark each step complete. Only proceed to the task below when all are checked.
 ` : '';
 
   if (remoteSetupNeeded) {
-    console.log(`  ${yellow('ℹ Remote setup required')} — agent will handle this first.\n`);
+    console.log(`  ${yellow('ℹ Remote setup required')} - agent will handle this first.\n`);
   }
 
   // ── Create worktree ───────────────────────────────────────────────────────────
@@ -1180,7 +1180,7 @@ ${excludedUrls}
       execSync(`git commit --no-verify -m "build: ${agent} task started on ${project} [${branchName}]"`, { cwd: ROOT, stdio: 'pipe' });
       console.log(`  ${green('✓')} BUILD_STATE.md committed to main`);
     } catch (err) {
-      console.log(`  ${yellow('!')} Could not commit BUILD_STATE.md — commit manually if needed`);
+      console.log(`  ${yellow('!')} Could not commit BUILD_STATE.md - commit manually if needed`);
     }
   }
 
@@ -1190,7 +1190,7 @@ ${excludedUrls}
   console.log(`\n${bold('  Workspace is set up and ready.')}`);
   console.log(dim(`  Worktree: worktrees/${worktreeName}\n`));
   console.log(`  ${yellow('⚠')}  ${bold('Open a NEW session in Claude Code or Claude Extension once your IDE is ready.')}`);
-  console.log(dim('     Do NOT reuse a previous session — the agent needs a clean context.'));
+  console.log(dim('     Do NOT reuse a previous session - the agent needs a clean context.'));
   console.log(dim(`     Tip: type ${cyan('"go"')} or ${cyan('"start"')} to kick it off.\n`));
 
   const openNow = await arrowConfirm('Open workspace now?', rl);
@@ -1198,7 +1198,7 @@ ${excludedUrls}
   if (!openNow) {
     console.clear();
     separator();
-    console.log(`\n${bold(yellow('  Workspace saved — resume when ready:'))}\n`);
+    console.log(`\n${bold(yellow('  Workspace saved - resume when ready:'))}\n`);
     console.log(`  ${bold('1.')} Open your IDE at:`);
     console.log(`     ${cyan(worktreePath)}\n`);
     console.log(`  ${bold('2.')} Open a ${bold('NEW')} session in Claude Code or Claude Extension.`);

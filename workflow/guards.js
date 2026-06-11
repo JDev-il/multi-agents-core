@@ -90,7 +90,7 @@ const loadTracking = (ROOT, config) => {
   const trackingPath = path.join(ROOT, '.scaffold', '.tracking.json');
 
   if (!fs.existsSync(trackingPath)) {
-    console.log(dim('  ℹ Tracking file not found — regenerating from config.'));
+    console.log(dim('  ℹ Tracking file not found - regenerating from config.'));
     const fresh = generateTrackingStructure(config);
     fs.writeFileSync(trackingPath, JSON.stringify(fresh, null, 2), 'utf8');
     return fresh;
@@ -99,7 +99,7 @@ const loadTracking = (ROOT, config) => {
   try {
     return JSON.parse(fs.readFileSync(trackingPath, 'utf8'));
   } catch {
-    console.log(yellow('  ⚠ .tracking.json is corrupt — regenerating.'));
+    console.log(yellow('  ⚠ .tracking.json is corrupt - regenerating.'));
     const fresh = generateTrackingStructure(config);
     fs.writeFileSync(trackingPath, JSON.stringify(fresh, null, 2), 'utf8');
     return fresh;
@@ -124,7 +124,7 @@ const updateTrackingSlot = (tracking, scope, agent, data, ROOT) => {
 const clearTrackingSlot = (tracking, scope, agent, ROOT) => {
   if (!tracking[scope] || !tracking[scope][agent]) return tracking;
 
-  // Preserve missingCount across completes — reset to 0 only on successful complete
+  // Preserve missingCount across completes - reset to 0 only on successful complete
   tracking[scope][agent] = emptySlot();
 
   const trackingPath = path.join(ROOT, '.scaffold', '.tracking.json');
@@ -145,7 +145,7 @@ const validateConfig = (config, ROOT) => {
   const errors   = [];
   const backfilled = [];
 
-  // Critical fields — hard stop if missing
+  // Critical fields - hard stop if missing
   for (const field of REQUIRED_CRITICAL) {
     if (!config[field]) errors.push(field);
   }
@@ -156,7 +156,7 @@ const validateConfig = (config, ROOT) => {
     process.exit(1);
   }
 
-  // Non-critical fields — backfill with defaults
+  // Non-critical fields - backfill with defaults
   for (const [fieldPath, defaultVal] of Object.entries(REQUIRED_BACKFILL)) {
     const parts  = fieldPath.split('.');
     let   target = config;
@@ -261,7 +261,7 @@ const coexistenceCheck = (branch, ROOT) => {
     result.divergenceCount = ahead ? ahead.split('\n').length : 0;
   } catch {}
 
-  // File overlap — files changed in both branch and main since divergence
+  // File overlap - files changed in both branch and main since divergence
   if (result.divergenceCount > 0) {
     try {
       const branchFiles = execSync(
@@ -292,24 +292,24 @@ const generateRecoveryGuidance = (branch, coexistence) => {
   lines.push('This workspace was recovered from a missing worktree.');
   lines.push('Complete the following steps before implementing anything:');
   lines.push('');
-  lines.push('### Step 1 — Pull main into this branch');
+  lines.push('### Step 1 - Pull main into this branch');
   lines.push('```');
   lines.push('git pull origin main');
   lines.push('```');
 
   if (coexistence.conflictFiles.length > 0) {
     lines.push('');
-    lines.push('### Step 2 — Resolve conflicts in this order');
+    lines.push('### Step 2 - Resolve conflicts in this order');
     coexistence.conflictFiles.forEach(file => {
       if (file.includes('CONTRACTS.md')) {
         lines.push(`- **${file}**: Keep all types added since this branch was created.`);
-        lines.push('  Merge your proposed types alongside them — do not overwrite.');
+        lines.push('  Merge your proposed types alongside them - do not overwrite.');
       } else if (file.includes('Providers')) {
         lines.push(`- **${file}**: Rewired since this branch was created.`);
         lines.push('  Adapt your hooks to consume the new provider shape.');
       } else {
         lines.push(`- **${file}**: Modified since this branch was created.`);
-        lines.push('  Preserve changes from main — adapt your work accordingly.');
+        lines.push('  Preserve changes from main - adapt your work accordingly.');
       }
     });
   }
@@ -342,15 +342,15 @@ const runMissingGate = async (params) => {
 
   // Display coexistence results
   if (!coexistence.remoteExists) {
-    console.log(`  ${dim('Remote')}   : ${red('not found — branch was deleted remotely')}`);
+    console.log(`  ${dim('Remote')}   : ${red('not found - branch was deleted remotely')}`);
   } else {
-    console.log(`  ${dim('Remote')}   : ${green('exists')} — ${coexistence.unmergedCommits} unmerged commit(s)`);
+    console.log(`  ${dim('Remote')}   : ${green('exists')} - ${coexistence.unmergedCommits} unmerged commit(s)`);
   }
 
   if (coexistence.divergenceCount > 0) {
     console.log(`  ${dim('Divergence')}: ${yellow(`main is ${coexistence.divergenceCount} commit(s) ahead`)}`);
   } else {
-    console.log(`  ${dim('Divergence')}: ${green('none — branch is up to date with main')}`);
+    console.log(`  ${dim('Divergence')}: ${green('none - branch is up to date with main')}`);
   }
 
   if (coexistence.conflictFiles.length > 0) {
@@ -369,24 +369,24 @@ const runMissingGate = async (params) => {
   console.log(`\n  ${bold('What would you like to do?')}\n`);
 
   if (coexistence.remoteExists) {
-    console.log(`  ${dim('1.')} ${bold('Recover')}  — restore workspace from remote branch`);
+    console.log(`  ${dim('1.')} ${bold('Recover')}  - restore workspace from remote branch`);
     console.log(`     ${dim('→')} Your ${coexistence.unmergedCommits} commit(s) will be available to continue`);
     if (coexistence.divergenceCount > 0) {
-      console.log(`     ${yellow(`⚠ ${coexistence.divergenceCount} commit(s) to reconcile — conflicts likely in ${coexistence.conflictFiles.length} file(s)`)}`);
+      console.log(`     ${yellow(`⚠ ${coexistence.divergenceCount} commit(s) to reconcile - conflicts likely in ${coexistence.conflictFiles.length} file(s)`)}`);
     }
     console.log('');
-    console.log(`  ${dim('2.')} ${bold('Reset')}    — delete branch locally and remotely, start fresh`);
+    console.log(`  ${dim('2.')} ${bold('Reset')}    - delete branch locally and remotely, start fresh`);
     console.log(`     ${red('⚠ All ' + coexistence.unmergedCommits + ' commit(s) will be permanently lost')}`);
     console.log('');
-    console.log(`  ${dim('3.')} ${bold('New task')} — create a new ${agent} branch, leave remote unresolved`);
+    console.log(`  ${dim('3.')} ${bold('New task')} - create a new ${agent} branch, leave remote unresolved`);
     console.log(`     ${yellow('⚠ 2 unmerged ' + agent + ' branches will exist')}`);
     console.log(`     ${dim('Only recommended for a genuinely separate concern')}`);
   } else {
-    // Remote doesn't exist — only reset or new task
-    console.log(`  ${dim('1.')} ${bold('Reset')}    — clear this tracking entry, start fresh`);
-    console.log(`     ${dim('→')} Remote branch is already gone — no data loss`);
+    // Remote doesn't exist - only reset or new task
+    console.log(`  ${dim('1.')} ${bold('Reset')}    - clear this tracking entry, start fresh`);
+    console.log(`     ${dim('→')} Remote branch is already gone - no data loss`);
     console.log('');
-    console.log(`  ${dim('2.')} ${bold('New task')} — create a new ${agent} branch`);
+    console.log(`  ${dim('2.')} ${bold('New task')} - create a new ${agent} branch`);
     console.log(`     ${dim('→')} Tracking entry will be replaced`);
   }
 
@@ -415,7 +415,7 @@ const runMissingGate = async (params) => {
         execSync(`git show-ref --verify --quiet refs/heads/${branch}`, { cwd: ROOT, stdio: 'pipe' });
         execSync(`git worktree add "${worktreePath}" ${branch}`, { cwd: ROOT, stdio: 'pipe' });
       } catch {
-        // Local branch gone — create from remote
+        // Local branch gone - create from remote
         execSync(`git worktree add "${worktreePath}" -b ${branch} origin/${branch}`, { cwd: ROOT, stdio: 'pipe' });
       }
       console.log(`  ${green('✓')} Workspace restored at: worktrees/${worktreeName}`);
@@ -434,7 +434,7 @@ const runMissingGate = async (params) => {
     }
 
     // Show best-practice summary
-    console.log(`\n${bold('Before implementing — complete these steps:')}\n`);
+    console.log(`\n${bold('Before implementing - complete these steps:')}\n`);
     console.log(`  ${bold('1.')} Pull main into this branch:`);
     console.log(`     ${cyan('git pull origin main')}\n`);
     if (coexistence.conflictFiles.length > 0) {
@@ -443,7 +443,7 @@ const runMissingGate = async (params) => {
     }
     console.log(`  ${yellow('⚠ Do NOT start new implementation until git status is clean.')}\n`);
 
-    // Update tracking slot — back to ACTIVE
+    // Update tracking slot - back to ACTIVE
     updateTrackingSlot(tracking, scope, agent, {
       status:       'ACTIVE',
       worktreePath,
@@ -465,7 +465,7 @@ const runMissingGate = async (params) => {
       execSync(`git branch -D ${branch}`, { cwd: ROOT, stdio: 'pipe' });
       console.log(`  ${green('✓')} Local branch deleted`);
     } catch {
-      console.log(`  ${dim('!')} Local branch not found — skipping`);
+      console.log(`  ${dim('!')} Local branch not found - skipping`);
     }
 
     // Delete remote branch
@@ -474,7 +474,7 @@ const runMissingGate = async (params) => {
         execSync(`git push origin --delete ${branch}`, { cwd: ROOT, stdio: 'pipe' });
         console.log(`  ${green('✓')} Remote branch deleted`);
       } catch {
-        console.log(`  ${yellow('!')} Could not delete remote branch — delete manually: git push origin --delete ${branch}`);
+        console.log(`  ${yellow('!')} Could not delete remote branch - delete manually: git push origin --delete ${branch}`);
       }
     }
 
@@ -503,7 +503,7 @@ const runMissingGate = async (params) => {
       } catch { /* best-effort */ }
     }
 
-    console.log(`\n  ${green('✓')} Reset complete — proceeding to launch new ${agent} task.\n`);
+    console.log(`\n  ${green('✓')} Reset complete - proceeding to launch new ${agent} task.\n`);
     return { action: 'reset' };
   }
 

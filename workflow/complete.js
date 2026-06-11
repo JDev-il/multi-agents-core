@@ -116,7 +116,7 @@ const updateBuildState = (branch, status, notes = '') => {
     execSync('git add BUILD_STATE.md', { cwd: ROOT, stdio: 'pipe' });
     execSync(`git commit -m "build: task ${status.toLowerCase()} [${branch}]"`, { cwd: ROOT, stdio: 'pipe' });
   } catch {
-    // Silent — BUILD_STATE.md update is best-effort
+    // Silent - BUILD_STATE.md update is best-effort
   }
 };
 
@@ -185,7 +185,7 @@ const main = async () => {
         return;
       }
     } else if (!isCompleted && isNonTTY) {
-      console.log(dim('  ℹ TASK.md not marked complete — proceeding in non-TTY mode.'));
+      console.log(dim('  ℹ TASK.md not marked complete - proceeding in non-TTY mode.'));
     }
   }
 
@@ -221,7 +221,7 @@ const main = async () => {
       console.log(`  ${green('✓')} Worktree is clean`);
     }
   } catch (err) {
-    console.log(`  ${yellow('!')} Could not auto-commit — commit manually if needed`);
+    console.log(`  ${yellow('!')} Could not auto-commit - commit manually if needed`);
   }
 
   // ── Pull latest main ──────────────────────────────────────────────────────────
@@ -253,7 +253,7 @@ const main = async () => {
     });
     console.log(`  ${green('✓')} Merged ${branchName} into main`);
   } catch (mergeErr) {
-    // Check if BUILD_STATE.md is the only conflict — auto-resolve
+    // Check if BUILD_STATE.md is the only conflict - auto-resolve
     try {
       const conflicts = execSync('git diff --name-only --diff-filter=U', { cwd: ROOT, encoding: 'utf8' })
         .trim().split('\n').filter(Boolean);
