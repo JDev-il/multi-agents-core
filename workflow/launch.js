@@ -888,7 +888,7 @@ const main = async () => {
     const res = await prompts({
       type:    'text',
       name:    'value',
-      message: '* Task description',
+      message: `* Task description (${agent} agent)`,
       initial: defaultTask,
       hint:    defaultTask ? `default: ${defaultTask}` : '',
     }, { onCancel: () => process.exit(0) });
@@ -900,14 +900,14 @@ const main = async () => {
     let goBackToAgent = false;
     while (!task) {
       if (defaultTask) {
-        console.log(`\n${bold('* Task description')} ${dim(`[default: ${defaultTask}]`)}`);
+        console.log(`\n${bold(`* Task description (${agent} agent)`)} ${dim(`[default: ${defaultTask}]`)}`);
         console.log(dim('  (Enter = use default  |  b = back to agent selection)'));
         const input = await ask(`  → `);
         if (input.toLowerCase() === 'b') { goBackToAgent = true; break; }
         task = input || defaultTask;
       } else {
         console.log(dim('  (b = back to agent selection)'));
-        const input = await ask(`\n${bold('* Task description')}: `);
+        const input = await ask(`\n${bold(`* Task description (${agent} agent)`)}: `);
         if (input.toLowerCase() === 'b') { goBackToAgent = true; break; }
         task = input;
         if (!task) console.log(yellow('  Task description is required.'));
