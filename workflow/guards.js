@@ -2,7 +2,7 @@
 
 /**
  * Multi-Agent Monorepo Template - Guards
- * Required by launch.js and complete.js
+ * Required by agent.js and complete.js
  *
  * Handles:
  *  - Config field validation

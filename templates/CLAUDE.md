@@ -144,7 +144,7 @@ the agent must:
 3. If yes - read it and verify dependencies are met against BUILD_STATE.md
 4. If dependencies not met - surface what is missing and propose options
 5. If dependencies met - begin executing the task defined in TASK.md
-6. If no TASK.md - inform the user to run `node .workflow/launch.js`
+6. If no TASK.md - inform the user to run `node .workflow/agent.js`
 
 Do not wait for explicit instructions.
 The presence of `TASK.md` in the worktree is the instruction.
