@@ -1144,8 +1144,9 @@ ${excludedUrls}
     version: '1.0.0',
     private: true,
     scripts: {
-      launch:   'cd "$(git rev-parse --git-common-dir)/.." && node .workflow/agent.js',
-      complete: 'cd "$(git rev-parse --git-common-dir)/.." && node .workflow/complete.js',
+      init:     'multi-agents init',
+      agent:    'node .workflow/agent.js',
+      complete: 'node .workflow/complete.js',
     },
   };
   fs.writeFileSync(
