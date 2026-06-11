@@ -1191,7 +1191,6 @@ ${excludedUrls}
   console.log(dim(`  Worktree: worktrees/${worktreeName}\n`));
   console.log(`  ${yellow('⚠')}  ${bold('Once your IDE opens and is ready, open a NEW session in Claude Code CLI or Claude Code Extension - and type go or start to initiate')}`);
   console.log(dim('     Do NOT reuse a previous session - the agent needs a clean context.'));
-  console.log(dim(`     Tip: type ${cyan('"go"')} or ${cyan('"start"')} to kick it off.\n`));
 
   const openNow = await arrowConfirm('Open workspace now?', rl);
 
