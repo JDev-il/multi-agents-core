@@ -134,7 +134,7 @@ const main = async () => {
 
   if (worktrees.length === 0) {
     console.log(`\n${yellow('  No active task worktrees found.')}`);
-    console.log(dim('  Run node .workflow/agent.js to start a task.\n'));
+    console.log(dim('  Run npm run agent to start a task.\n'));
     rl.close();
     return;
   }
@@ -318,7 +318,7 @@ const main = async () => {
   console.log(`  ${dim('Branch')} ${green(branchName)} merged into ${green('main')}\n`);
   console.log(`  ${bold('What to do next:')}\n`);
   console.log(`  Start a new task:`);
-  console.log(`  ${cyan('node .workflow/agent.js')}\n`);
+  console.log(`  ${cyan('npm run agent')}\n`);
   separator();
   console.log('');
 
