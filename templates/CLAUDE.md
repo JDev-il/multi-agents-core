@@ -391,8 +391,8 @@ Derive URL: `https://github.com/new?name={projectName}`
 
 Open browser (OS-aware — check .app exists before using):
 ```bash
-# Mac: detect installed browser via /Applications/*.app
-open -a "{detected browser}" "https://github.com/new?name={projectName}"
+# Mac:
+open "https://github.com/new?name={projectName}"
 # Windows:
 start "" "https://github.com/new?name={projectName}"
 # Linux:
