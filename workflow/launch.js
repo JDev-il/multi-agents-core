@@ -770,7 +770,7 @@ const main = async () => {
       openIDE(activeSlot.worktreePath);
       console.log(`  ${bold('Resume your task:')}`);
       console.log(`  ${dim('1.')} IDE should be open at: ${cyan(activeSlot.worktreePath)}`);
-      console.log(`  ${dim('2.')} Open a NEW Claude Code session there`);
+      console.log(`  ${dim('2.')} Open a NEW session in Claude Code or Claude Extension there`);
       console.log(`  ${dim('3.')} Type: ${cyan('Read TASK.md and continue from where you stopped.')}\n`);
       separator(); rl.close(); return;
     }
@@ -1189,7 +1189,7 @@ ${excludedUrls}
   separator();
   console.log(`\n${bold('  Workspace is set up and ready.')}`);
   console.log(dim(`  Worktree: worktrees/${worktreeName}\n`));
-  console.log(`  ${yellow('⚠')}  ${bold('Open a NEW Claude Code session once your IDE is ready.')}`);
+  console.log(`  ${yellow('⚠')}  ${bold('Open a NEW session in Claude Code or Claude Extension once your IDE is ready.')}`);
   console.log(dim('     Do NOT reuse a previous session — the agent needs a clean context.'));
   console.log(dim(`     Tip: type ${cyan('"go"')} or ${cyan('"start"')} to kick it off.\n`));
 
@@ -1201,7 +1201,7 @@ ${excludedUrls}
     console.log(`\n${bold(yellow('  Workspace saved — resume when ready:'))}\n`);
     console.log(`  ${bold('1.')} Open your IDE at:`);
     console.log(`     ${cyan(worktreePath)}\n`);
-    console.log(`  ${bold('2.')} Open a ${bold('NEW')} Claude Code session.`);
+    console.log(`  ${bold('2.')} Open a ${bold('NEW')} session in Claude Code or Claude Extension.`);
     console.log(dim('     Do NOT reuse a previous session.\n'));
     console.log(`  ${bold('3.')} Start the session and let the agent run.\n`);
     separator();
@@ -1226,7 +1226,7 @@ ${excludedUrls}
   console.log(`\n${bold(green('  Workspace ready!'))}\n`);
   console.log(`  ${bold('1.')} Your IDE should be open at: ${cyan(`worktrees/${worktreeName}`)}`);
   console.log(dim('     If not, open it manually at the path above.\n'));
-  console.log(`  ${bold('2.')} ${bold(yellow('Open a NEW Claude Code session.'))}`);
+  console.log(`  ${bold('2.')} ${bold(yellow('Open a NEW session in Claude Code or Claude Extension.'))}`);
   console.log(dim('     Do NOT reuse a previous session.\n'));
   console.log(`  ${bold('3.')} Start the session and let the agent run.\n`);
   console.log(`  ${bold('4.')} When the agent completes the task:`);
