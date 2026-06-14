@@ -87,13 +87,13 @@ const LOCK_PATH   = path.join(ROOT, '.scaffold', '.initialized');
 
 if (!fs.existsSync(LOCK_PATH)) {
   console.log(`\n${red('  Project not initialized.')}`);
-  console.log(dim('  Run npm run init first.\n'));
+  console.log(dim('  Run `') + cyan('npm run init') + dim('` first.\n'));
   process.exit(1);
 }
 
 if (!fs.existsSync(CONFIG_PATH)) {
   console.log(`\n${red('  Missing .scaffold/.config.json.')}`);
-  console.log(dim('  Run npm run init to regenerate.\n'));
+  console.log(dim('  Run `') + cyan('npm run init') + dim('` to regenerate.\n'));
   process.exit(1);
 }
 
@@ -117,7 +117,7 @@ if (normalizedCwd !== normalizedRoot) {
 
 if (!config.ide) {
   console.log(`\n${red('  IDE not configured.')}`);
-  console.log(dim('  Run npm run init to configure your IDE preference.\n'));
+  console.log(dim('  Run `') + cyan('npm run init') + dim('` to configure your IDE preference.\n'));
   process.exit(1);
 }
 
@@ -670,7 +670,7 @@ const main = async () => {
   // Hard stop - backend not configured
   if (selectedScope.needsConfig) {
     console.log(`\n${red('  Backend is not configured.')}`);
-    console.log(dim('  Re-run npm run init to add backend configuration.\n'));
+    console.log(dim('  Re-run `') + cyan('npm run init') + dim('` to add backend configuration.\n'));
     rl.close();
     return;
   }
