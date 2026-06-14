@@ -615,6 +615,14 @@ ${dod || '- [ ] Task completed as described above'}
 - [ ] IN PROGRESS
 - [ ] COMPLETED
 
+## User Overrides
+<!-- If the user provides input mid-session, log it here using this format:
+[USER OVERRIDE] <timestamp>
+Input    : <what the user typed>
+Deviation: <how it differs from original task or scope>
+Action   : <what the agent did - proceeded / redirected / flagged>
+-->
+
 ## Notes
 <!-- Agent writes completion notes, decisions, and open questions here -->
 `;
