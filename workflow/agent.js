@@ -898,8 +898,7 @@ const main = async () => {
       type:    'text',
       name:    'value',
       message: `* Task description (${agent} agent)`,
-      initial: defaultTask,
-      hint:    defaultTask ? `default: ${defaultTask}` : '',
+      hint:    defaultTask ? `e.g. ${defaultTask}` : '',
     }, { onCancel: () => process.exit(0) });
 
     if (res.value === undefined) continue flowLoop; // Esc = back
