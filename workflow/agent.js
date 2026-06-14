@@ -13,6 +13,7 @@ const fs           = require('fs');
 const path         = require('path');
 const { execSync } = require('child_process');
 const guards       = require('./guards');
+const tasksHistory = require('./tasks_history');
 
 // ── Prompts (arrow-key navigation) ───────────────────────────────────────────
 
@@ -1136,6 +1137,17 @@ ${excludedUrls}
     'utf8'
   );
   console.log(`  ${green('✓')} TASK.md written`);
+
+  // ── Write session to TASKS_HISTORY.md ────────────────────────────────────────
+  tasksHistory.ensureHistoryFile(ROOT);
+  tasksHistory.writeSessionEntry(ROOT, {
+    scope:      project,
+    agent,
+    branch:     branchName,
+    task,
+    launchedAt: new Date().toISOString(),
+  });
+  console.log(`  ${green('✓')} Session logged to TASKS_HISTORY.md`);
 
   // ── Write package.json proxy ──────────────────────────────────────────────────
 

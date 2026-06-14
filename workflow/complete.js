@@ -14,6 +14,7 @@ const fs                = require('fs');
 const path              = require('path');
 const { execSync, spawn } = require('child_process');
 const guards            = require('./guards');
+const tasksHistory      = require('./tasks_history');
 
 // ── Colors ────────────────────────────────────────────────────────────────────
 
@@ -111,6 +112,13 @@ const updateBuildState = (branch, status, notes = '') => {
   );
 
   fs.writeFileSync(buildStatePath, content, 'utf8');
+
+  // Update TASKS_HISTORY.md
+  tasksHistory.updateSessionStatus(ROOT, {
+    branch,
+    status,
+    completedAt: new Date().toISOString(),
+  });
 
   try {
     execSync('git add BUILD_STATE.md', { cwd: ROOT, stdio: 'pipe' });
