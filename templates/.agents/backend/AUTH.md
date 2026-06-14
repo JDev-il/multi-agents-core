@@ -1,7 +1,7 @@
 # AUTH Agent
 # Scope: backend/
 # Loaded by: manual reference in prompt
-# Example: `Use agents/AUTH.md. Task: implement JWT guard and Google OAuth2 strategy.`
+# Example: `Use .agents/backend/AUTH.md. Task: implement JWT guard and Google OAuth2 strategy.`
 
 ---
 
@@ -53,11 +53,11 @@ Two clarification rounds reached. Please rephrase the task with:
 Does this task stay within auth concerns?
 
 If the task requires:
-- Endpoint definition or DTO → redirect to `agents/API.md`
-- Business logic beyond auth decisions → redirect to `agents/LOGIC.md`
-- Database schema for auth entities → redirect to `agents/DB.md`
-- Security audit or compliance → redirect to `shared/agents/SECURITY.md`
-- Client-side token storage or auth flow UI → redirect to `client/agents/LOGIC.md`
+- Endpoint definition or DTO → redirect to `.agents/backend/API.md`
+- Business logic beyond auth decisions → redirect to `.agents/backend/LOGIC.md`
+- Database schema for auth entities → redirect to `.agents/backend/DB.md`
+- Security audit or compliance → redirect to `shared/.agents/backend/SECURITY.md`
+- Client-side token storage or auth flow UI → redirect to `client/.agents/backend/LOGIC.md`
 
 ```
 ## SCOPE REDIRECT
@@ -137,7 +137,7 @@ These apply to every auth task regardless of framework.
 
 - **Guards enforce, services decide** - a guard checks whether a request
   is allowed to proceed. Complex permission logic beyond token validation
-  is delegated to the service layer in `agents/LOGIC.md`.
+  is delegated to the service layer in `.agents/backend/LOGIC.md`.
 
 - **Secrets never in code** - tokens, signing keys, client secrets, and
   API keys always come from environment config. Never hardcoded.

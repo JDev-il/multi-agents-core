@@ -1,7 +1,7 @@
 # EVENTS Agent
 # Scope: backend/
 # Loaded by: manual reference in prompt
-# Example: `Use agents/EVENTS.md. Task: implement the Pub/Sub webhook receiver and event dispatcher.`
+# Example: `Use .agents/backend/EVENTS.md. Task: implement the Pub/Sub webhook receiver and event dispatcher.`
 
 ---
 
@@ -55,11 +55,11 @@ Two clarification rounds reached. Please rephrase the task with:
 Does this task stay within event-driven concerns?
 
 If the task requires:
-- Business logic triggered by an event → redirect to `agents/LOGIC.md`
-- Database persistence of event payload → redirect to `agents/DB.md`
-- Webhook endpoint definition beyond ingestion → redirect to `agents/API.md`
-- Webhook token authentication → redirect to `agents/AUTH.md`
-- Scheduled or recurring job → redirect to `agents/JOBS.md`
+- Business logic triggered by an event → redirect to `.agents/backend/LOGIC.md`
+- Database persistence of event payload → redirect to `.agents/backend/DB.md`
+- Webhook endpoint definition beyond ingestion → redirect to `.agents/backend/API.md`
+- Webhook token authentication → redirect to `.agents/backend/AUTH.md`
+- Scheduled or recurring job → redirect to `.agents/backend/JOBS.md`
 
 ```
 ## SCOPE REDIRECT
@@ -141,7 +141,7 @@ These apply to every events task regardless of framework.
 
 - **Ingestion and processing are separate** - a webhook receiver or
   queue consumer ingests the raw message and immediately dispatches
-  it. All processing logic lives in `agents/LOGIC.md`. Never process
+  it. All processing logic lives in `.agents/backend/LOGIC.md`. Never process
   inline inside the receiver.
 
 - **Always return 200 to external push sources** - webhook receivers
@@ -163,7 +163,7 @@ These apply to every events task regardless of framework.
   It does not process, persist, or trigger additional logic inline.
 
 - **Webhook token validation is not owned here** - token verification
-  is delegated to `agents/AUTH.md`. This agent wires the receiver
+  is delegated to `.agents/backend/AUTH.md`. This agent wires the receiver
   and dispatches - it does not implement the token check.
 
 <!-- @annotation

@@ -1,7 +1,7 @@
 # SECURITY Agent
 # Scope: shared/ - cross-cutting, invokable from any worktree
 # Loaded by: manual reference in prompt
-# Example: `Use shared/agents/SECURITY.md. Task: audit the authentication flow for vulnerabilities.`
+# Example: `Use .agents/shared/SECURITY.md. Task: audit the authentication flow for vulnerabilities.`
 
 ---
 
@@ -62,15 +62,15 @@ Does this task stay within security auditing concerns?
 This agent audits and proposes - it does not implement.
 
 If the task requires:
-- Implementing auth fixes → surface finding, redirect to `backend/agents/AUTH.md`
+- Implementing auth fixes → surface finding, redirect to `.agents/backend/AUTH.md`
 - Implementing input validation fixes → surface finding, redirect to
-  `backend/agents/API.md` or `client/agents/FORMS.md`
+  `.agents/backend/API.md` or `.agents/client/FORMS.md`
 - Implementing DB-level security fixes → surface finding, redirect to
-  `backend/agents/DB.md`
+  `.agents/backend/DB.md`
 - Implementing client-side security patterns → surface finding, redirect
-  to `client/agents/LOGIC.md`
+  to `.agents/client/LOGIC.md`
 - Fixing accessibility-related security concerns → redirect to
-  `client/agents/ACCESSIBILITY.md`
+  `.agents/client/ACCESSIBILITY.md`
 
 ```
 ## SCOPE REDIRECT

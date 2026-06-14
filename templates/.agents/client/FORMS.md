@@ -1,7 +1,7 @@
 # FORMS Agent
 # Scope: client/
 # Loaded by: manual reference in prompt
-# Example: `Use agents/FORMS.md. Task: build the job application add form.`
+# Example: `Use .agents/client/FORMS.md. Task: build the job application add form.`
 
 ---
 
@@ -53,11 +53,11 @@ Two clarification rounds reached. Please rephrase the task with:
 Does this task stay within form concerns?
 
 If the task requires:
-- Component layout or styling beyond form structure → redirect to `agents/UI.md`
-- Global state management → redirect to `agents/LOGIC.md`
-- Route navigation post-submission → redirect to `agents/ROUTING.md`
-- Accessibility patterns beyond form labels and errors → redirect to `agents/ACCESSIBILITY.md`
-- API endpoint implementation → redirect to `backend/agents/API.md`
+- Component layout or styling beyond form structure → redirect to `.agents/client/UI.md`
+- Global state management → redirect to `.agents/client/LOGIC.md`
+- Route navigation post-submission → redirect to `.agents/client/ROUTING.md`
+- Accessibility patterns beyond form labels and errors → redirect to `.agents/client/ACCESSIBILITY.md`
+- API endpoint implementation → redirect to `backend/.agents/client/API.md`
 
 ```
 ## SCOPE REDIRECT

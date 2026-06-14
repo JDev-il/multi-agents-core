@@ -1,7 +1,7 @@
 # LOGIC Agent
 # Scope: client/
 # Loaded by: manual reference in prompt
-# Example: `Use agents/LOGIC.md. Task: implement the job applications state slice.`
+# Example: `Use .agents/client/LOGIC.md. Task: implement the job applications state slice.`
 
 ---
 
@@ -64,12 +64,12 @@ Two clarification rounds reached. Please rephrase the task with:
 Does this task stay within client logic concerns?
 
 If the task requires:
-- Component markup or styling → redirect to `agents/UI.md`
-- Form validation schema or submission logic → redirect to `agents/FORMS.md`
-- Route definitions → redirect to `agents/ROUTING.md`
+- Component markup or styling → redirect to `.agents/client/UI.md`
+- Form validation schema or submission logic → redirect to `.agents/client/FORMS.md`
+- Route definitions → redirect to `.agents/client/ROUTING.md`
 - Guard implementation is owned here - ROUTING.md wires the guard, LOGIC.md implements it
-- Accessibility patterns → redirect to `agents/ACCESSIBILITY.md`
-- Backend service or business rule → redirect to `backend/agents/LOGIC.md`
+- Accessibility patterns → redirect to `.agents/client/ACCESSIBILITY.md`
+- Backend service or business rule → redirect to `backend/.agents/client/LOGIC.md`
 
 ```
 ## SCOPE REDIRECT

@@ -1,7 +1,7 @@
 # LOGIC Agent
 # Scope: backend/
 # Loaded by: manual reference in prompt
-# Example: `Use agents/LOGIC.md. Task: implement the email classification service.`
+# Example: `Use .agents/backend/LOGIC.md. Task: implement the email classification service.`
 
 ---
 
@@ -66,12 +66,12 @@ Two clarification rounds reached. Please rephrase the task with:
 Does this task stay within backend business logic concerns?
 
 If the task requires:
-- Endpoint or DTO definition → redirect to `agents/API.md`
-- Database schema or query implementation → redirect to `agents/DB.md`
-- Auth strategy or guard implementation → redirect to `agents/AUTH.md`
-- Background job or scheduled task → redirect to `agents/JOBS.md`
-- Event emission or subscription handling → redirect to `agents/EVENTS.md`
-- Client-side logic or state → redirect to `client/agents/LOGIC.md`
+- Endpoint or DTO definition → redirect to `.agents/backend/API.md`
+- Database schema or query implementation → redirect to `.agents/backend/DB.md`
+- Auth strategy or guard implementation → redirect to `.agents/backend/AUTH.md`
+- Background job or scheduled task → redirect to `.agents/backend/JOBS.md`
+- Event emission or subscription handling → redirect to `.agents/backend/EVENTS.md`
+- Client-side logic or state → redirect to `client/.agents/backend/LOGIC.md`
 
 ```
 ## SCOPE REDIRECT
@@ -89,7 +89,7 @@ Does this task depend on something that doesn't exist yet?
 - External service or integration not yet configured
 - Shared types from `CONTRACTS.md` not yet present
 - Another service this one orchestrates not yet built
-- Auth guard this logic needs to enforce not yet in `agents/AUTH.md`
+- Auth guard this logic needs to enforce not yet in `.agents/backend/AUTH.md`
 
 If yes:
 ```
@@ -175,7 +175,7 @@ These apply to every backend logic task regardless of framework.
   Never bundle unrelated business rules into the same service unit.
 
 - **Services do not own persistence** - data access is delegated to
-  the repository or ORM layer owned by `agents/DB.md`. Services
+  the repository or ORM layer owned by `.agents/backend/DB.md`. Services
   receive data and return results - they do not write queries.
 
 - **Services do not own HTTP** - no request or response objects inside

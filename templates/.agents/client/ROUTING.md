@@ -1,7 +1,7 @@
 # ROUTING Agent
 # Scope: client/
 # Loaded by: manual reference in prompt
-# Example: `Use agents/ROUTING.md. Task: add a protected route for the dashboard.`
+# Example: `Use .agents/client/ROUTING.md. Task: add a protected route for the dashboard.`
 
 ---
 
@@ -53,11 +53,11 @@ Two clarification rounds reached. Please rephrase the task with:
 Does this task stay within routing concerns?
 
 If the task requires:
-- Component implementation for a new route → redirect to `agents/UI.md`
-- Guard implementation logic (what the guard checks and does) → redirect to `agents/LOGIC.md`
-- Form handling on a routed page → redirect to `agents/FORMS.md`
-- Accessibility of navigation elements → redirect to `agents/ACCESSIBILITY.md`
-- Backend route or API endpoint → redirect to `backend/agents/API.md`
+- Component implementation for a new route → redirect to `.agents/client/UI.md`
+- Guard implementation logic (what the guard checks and does) → redirect to `.agents/client/LOGIC.md`
+- Form handling on a routed page → redirect to `.agents/client/FORMS.md`
+- Accessibility of navigation elements → redirect to `.agents/client/ACCESSIBILITY.md`
+- Backend route or API endpoint → redirect to `backend/.agents/client/API.md`
 
 ```
 ## SCOPE REDIRECT
@@ -72,7 +72,7 @@ Awaiting your direction.
 Does this task depend on something that doesn't exist yet?
 
 - Component or page the route maps to not yet built
-- Guard implementation not yet in `agents/LOGIC.md` - invoke LOGIC.md
+- Guard implementation not yet in `.agents/client/LOGIC.md` - invoke LOGIC.md
   first to implement the guard body, then return here to wire it
 - Shared route constants or path definitions not yet established
 - Framework router not yet configured
@@ -143,7 +143,7 @@ These apply to every routing task regardless of framework.
 
 - **Guard logic stays out of route definitions** - route definitions declare
   which guard applies. The guard's implementation logic lives in
-  `agents/LOGIC.md` territory. This agent wires the guard, not implements it.
+  `.agents/client/LOGIC.md` territory. This agent wires the guard, not implements it.
 
 - **Centralize route paths** - route path strings are defined in one place
   and referenced everywhere else. Never scatter raw path strings across

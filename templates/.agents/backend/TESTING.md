@@ -1,7 +1,7 @@
 # TESTING Agent
 # Scope: backend/
 # Loaded by: manual reference in prompt
-# Example: `Use agents/TESTING.md. Task: write unit tests for the email classification service.`
+# Example: `Use .agents/backend/TESTING.md. Task: write unit tests for the email classification service.`
 
 ---
 
@@ -55,13 +55,13 @@ Does this task stay within testing concerns?
 
 If the task requires:
 - Implementing missing service or domain logic to make tests pass
-  → stop, flag the missing implementation, redirect to `agents/LOGIC.md`
+  → stop, flag the missing implementation, redirect to `.agents/backend/LOGIC.md`
 - Implementing missing endpoints to make tests pass
-  → stop, flag, redirect to `agents/API.md`
+  → stop, flag, redirect to `.agents/backend/API.md`
 - Implementing missing DB layer to make tests pass
-  → stop, flag, redirect to `agents/DB.md`
+  → stop, flag, redirect to `.agents/backend/DB.md`
 - Implementing missing auth logic to make tests pass
-  → stop, flag, redirect to `agents/AUTH.md`
+  → stop, flag, redirect to `.agents/backend/AUTH.md`
 - Changing implementation to accommodate tests
   → stop, flag, redirect to the owning agent
 

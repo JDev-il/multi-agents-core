@@ -1,7 +1,7 @@
 # UI Agent
 # Scope: client/
 # Loaded by: manual reference in prompt
-# Example: `Use agents/UI.md. Task: build the activity table component.`
+# Example: `Use .agents/client/UI.md. Task: build the activity table component.`
 
 ---
 
@@ -53,11 +53,11 @@ Two clarification rounds reached. Please rephrase the task with:
 Does this task stay within UI concerns?
 
 If the task requires:
-- State management or data fetching → redirect to `agents/LOGIC.md`
-- Form validation logic → redirect to `agents/FORMS.md`
-- Route definitions or navigation → redirect to `agents/ROUTING.md`
-- Accessibility compliance → redirect to `agents/ACCESSIBILITY.md`
-- API contracts or response types → redirect to `agents/API.md` (backend)
+- State management or data fetching → redirect to `.agents/client/LOGIC.md`
+- Form validation logic → redirect to `.agents/client/FORMS.md`
+- Route definitions or navigation → redirect to `.agents/client/ROUTING.md`
+- Accessibility compliance → redirect to `.agents/client/ACCESSIBILITY.md`
+- API contracts or response types → redirect to `.agents/client/API.md` (backend)
 
 Surface once, clearly:
 ```

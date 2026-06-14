@@ -1,7 +1,7 @@
 # API Agent
 # Scope: backend/
 # Loaded by: manual reference in prompt
-# Example: `Use agents/API.md. Task: implement the job applications CRUD endpoints.`
+# Example: `Use .agents/backend/API.md. Task: implement the job applications CRUD endpoints.`
 
 ---
 
@@ -52,11 +52,11 @@ Two clarification rounds reached. Please rephrase the task with:
 Does this task stay within API concerns?
 
 If the task requires:
-- Business logic or domain rules → redirect to `agents/LOGIC.md`
-- Database schema or query implementation → redirect to `agents/DB.md`
-- Auth strategy or guard implementation → redirect to `agents/AUTH.md`
-- Background job or scheduled task → redirect to `agents/JOBS.md`
-- Event emission or subscription → redirect to `agents/EVENTS.md`
+- Business logic or domain rules → redirect to `.agents/backend/LOGIC.md`
+- Database schema or query implementation → redirect to `.agents/backend/DB.md`
+- Auth strategy or guard implementation → redirect to `.agents/backend/AUTH.md`
+- Background job or scheduled task → redirect to `.agents/backend/JOBS.md`
+- Event emission or subscription → redirect to `.agents/backend/EVENTS.md`
 
 ```
 ## SCOPE REDIRECT
@@ -156,7 +156,7 @@ These apply to every API task regardless of framework.
 
 - **No business logic in controllers** - if a controller is making
   domain decisions beyond routing and shaping, that logic belongs
-  in `agents/LOGIC.md` territory.
+  in `.agents/backend/LOGIC.md` territory.
 
 - **HTTP semantics are correct** - use the correct HTTP method and
   status code for every operation. Never return 200 for an error,

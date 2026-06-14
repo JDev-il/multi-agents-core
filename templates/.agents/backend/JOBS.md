@@ -1,7 +1,7 @@
 # JOBS Agent
 # Scope: backend/
 # Loaded by: manual reference in prompt
-# Example: `Use agents/JOBS.md. Task: implement a scheduled job to renew Gmail watch subscriptions.`
+# Example: `Use .agents/backend/JOBS.md. Task: implement a scheduled job to renew Gmail watch subscriptions.`
 
 ---
 
@@ -54,11 +54,11 @@ Two clarification rounds reached. Please rephrase the task with:
 Does this task stay within background job concerns?
 
 If the task requires:
-- Business logic the job executes → redirect to `agents/LOGIC.md`
-- Database schema for job tracking tables → redirect to `agents/DB.md`
-- Event emission on job completion → redirect to `agents/EVENTS.md`
-- API endpoint to enqueue or trigger a job → redirect to `agents/API.md`
-- Auth for job trigger endpoints → redirect to `agents/AUTH.md`
+- Business logic the job executes → redirect to `.agents/backend/LOGIC.md`
+- Database schema for job tracking tables → redirect to `.agents/backend/DB.md`
+- Event emission on job completion → redirect to `.agents/backend/EVENTS.md`
+- API endpoint to enqueue or trigger a job → redirect to `.agents/backend/API.md`
+- Auth for job trigger endpoints → redirect to `.agents/backend/AUTH.md`
 
 ```
 ## SCOPE REDIRECT
@@ -139,7 +139,7 @@ These apply to every jobs task regardless of framework.
 
 - **Jobs delegate, they do not decide** - a job definition handles
   triggering and error containment only. All business logic is
-  delegated to the service layer in `agents/LOGIC.md`. Never
+  delegated to the service layer in `.agents/backend/LOGIC.md`. Never
   implement domain rules inside a job.
 
 - **Schedule expressions come from config** - cron expressions,

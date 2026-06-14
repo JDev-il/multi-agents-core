@@ -1,7 +1,7 @@
 # DB Agent
 # Scope: backend/
 # Loaded by: manual reference in prompt
-# Example: `Use agents/DB.md. Task: design the job applications schema and generate the migration.`
+# Example: `Use .agents/backend/DB.md. Task: design the job applications schema and generate the migration.`
 
 ---
 
@@ -53,11 +53,11 @@ Two clarification rounds reached. Please rephrase the task with:
 Does this task stay within data layer concerns?
 
 If the task requires:
-- Business logic using retrieved data → redirect to `agents/LOGIC.md`
-- API endpoint or DTO definition → redirect to `agents/API.md`
-- Auth-related schema decisions → coordinate with `agents/AUTH.md`
-- Background job data patterns → coordinate with `agents/JOBS.md`
-- Event sourcing schema → coordinate with `agents/EVENTS.md`
+- Business logic using retrieved data → redirect to `.agents/backend/LOGIC.md`
+- API endpoint or DTO definition → redirect to `.agents/backend/API.md`
+- Auth-related schema decisions → coordinate with `.agents/backend/AUTH.md`
+- Background job data patterns → coordinate with `.agents/backend/JOBS.md`
+- Event sourcing schema → coordinate with `.agents/backend/EVENTS.md`
 
 ```
 ## SCOPE REDIRECT

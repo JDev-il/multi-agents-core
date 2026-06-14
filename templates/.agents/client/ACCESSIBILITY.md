@@ -1,7 +1,7 @@
 # ACCESSIBILITY Agent
 # Scope: client/
 # Loaded by: manual reference in prompt
-# Example: `Use agents/ACCESSIBILITY.md. Task: audit and fix the activity table for screen reader support.`
+# Example: `Use .agents/client/ACCESSIBILITY.md. Task: audit and fix the activity table for screen reader support.`
 
 ---
 
@@ -55,13 +55,13 @@ Does this task stay within accessibility concerns?
 
 If the task requires:
 - Rebuilding component structure beyond adding accessibility attributes
-  → redirect to `agents/UI.md`
+  → redirect to `.agents/client/UI.md`
 - Changing form validation logic beyond error announcement
-  → redirect to `agents/FORMS.md`
+  → redirect to `.agents/client/FORMS.md`
 - Changing route structure beyond focus management on navigation
-  → redirect to `agents/ROUTING.md`
+  → redirect to `.agents/client/ROUTING.md`
 - Changing state or data flow to support accessibility features
-  → redirect to `agents/LOGIC.md`
+  → redirect to `.agents/client/LOGIC.md`
 
 ```
 ## SCOPE REDIRECT

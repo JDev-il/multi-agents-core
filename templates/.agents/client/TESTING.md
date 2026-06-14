@@ -1,7 +1,7 @@
 # TESTING Agent
 # Scope: client/
 # Loaded by: manual reference in prompt
-# Example: `Use agents/TESTING.md. Task: write tests for the activity table component.`
+# Example: `Use .agents/client/TESTING.md. Task: write tests for the activity table component.`
 
 ---
 
@@ -55,10 +55,10 @@ Does this task stay within testing concerns?
 If the task requires:
 - Implementing missing functionality to make tests pass → stop, flag the
   missing implementation, redirect to the owning agent before proceeding
-- Changing component markup to accommodate tests → redirect to `agents/UI.md`
-- Changing logic to accommodate tests → redirect to `agents/LOGIC.md`
-- Changing form behavior to accommodate tests → redirect to `agents/FORMS.md`
-- Changing route structure to accommodate tests → redirect to `agents/ROUTING.md`
+- Changing component markup to accommodate tests → redirect to `.agents/client/UI.md`
+- Changing logic to accommodate tests → redirect to `.agents/client/LOGIC.md`
+- Changing form behavior to accommodate tests → redirect to `.agents/client/FORMS.md`
+- Changing route structure to accommodate tests → redirect to `.agents/client/ROUTING.md`
 
 ```
 ## SCOPE REDIRECT
