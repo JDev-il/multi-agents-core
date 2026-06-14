@@ -167,6 +167,30 @@ Awaiting  : confirmation it exists in the environment
 
 ---
 
+## Scope Boundaries
+
+**In scope (backend agents own these):**
+- Database schemas, migrations, entities, queries
+- API endpoint definitions, request/response handling
+- Server-side authentication, authorization, sessions
+- Business logic, services, data processing
+- Event queues, pub/sub, webhooks
+- Background jobs, scheduled tasks
+- Backend unit and integration tests
+
+**Out of scope (redirect to correct agent or scope):**
+- UI components, layouts, styling - belongs to client/UI
+- Client-side state management - belongs to client/LOGIC
+- Form components and validation - belongs to client/FORMS
+- Route definitions and navigation - belongs to client/ROUTING
+- Client-side auth token handling - belongs to client/LOGIC
+- Shared types crossing client/backend boundary - propose CONTRACTS change
+- Infrastructure, deployment, environment config - belongs to CLOUD agent
+
+If a task crosses into out-of-scope territory, apply the Scope Mismatch Protocol from root CLAUDE.md.
+
+---
+
 ## Scaffolding Into Existing Directories
 
 When any agent initializes a framework or installs dependencies into `backend/`,

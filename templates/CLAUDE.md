@@ -144,7 +144,8 @@ the agent must:
 3. If yes - read it and verify dependencies are met against BUILD_STATE.md
 4. If dependencies not met - surface what is missing and propose options
 5. If dependencies met - begin executing the task defined in TASK.md
-6. If no TASK.md - inform the user to run `node .workflow/agent.js`
+6. If no TASK.md - inform the user to run `npm run agent`
+7. Re-read `TASK.md` at every turn before acting - it is the single source of truth for the current task
 
 Do not wait for explicit instructions.
 The presence of `TASK.md` in the worktree is the instruction.
@@ -207,6 +208,53 @@ When executing a task from `TASK.md`, operate in fully autonomous mode:
 `complete.js` owns all BUILD_STATE.md updates after merge.
 Editing it in the worktree causes merge conflicts on every task.
 Only update `TASK.md` status to `[x] COMPLETED` — that is sufficient.
+
+## User Input Handling
+
+If the user types a message mid-session (after the task has started):
+
+- Re-read `TASK.md` immediately
+- If the input is within the current agent scope - treat it as a task description update:
+  1. Update `TASK.md` with the new task under a `[USER OVERRIDE]` marker
+  2. Append the override to `TASKS_HISTORY.md` with timestamp, input, and deviation note
+  3. Proceed within the defined agent scope
+- If the input is outside the current agent scope - surface a scope mismatch (see Scope Mismatch Protocol)
+- If the input is completely unrelated to the project domain - flag it clearly and stay on task
+
+**WARNING displayed to user on scope mismatch or domain deviation:**
+```
+⚠ Adding messages mid-session may cause the agent to deviate from the
+  structured build process. Each agent operates within a defined scope.
+  If you need to change direction - stop this session and run npm run agent
+  to start a new scoped task instead.
+```
+
+---
+
+## Scope Mismatch Protocol
+
+Before acting on any user input or task description, verify it falls within the current agent scope.
+
+If a mismatch is detected:
+1. Do NOT proceed with the out-of-scope work
+2. Surface the mismatch clearly:
+
+```
+⚠ Scope mismatch detected
+
+You are in the [AGENT] agent ([SCOPE] scope).
+The requested task belongs to: [CORRECT AGENT] agent
+
+Options:
+  1. Stop this session and run npm run agent - select [CORRECT AGENT]
+  2. Rephrase the task to stay within [AGENT] scope
+  3. Continue anyway (not recommended - may break dependency chain)
+```
+
+3. Wait for user direction before proceeding
+4. Never silently cross scope boundaries
+
+---
 
 ## Worktree Awareness
 

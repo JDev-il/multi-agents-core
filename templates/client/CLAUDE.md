@@ -177,6 +177,29 @@ Awaiting  : confirmation it exists in the environment
 
 ---
 
+## Scope Boundaries
+
+**In scope (client agents own these):**
+- UI components, layouts, pages, styling
+- State management, custom hooks, API client calls
+- Form components, validation, submission handling
+- Route definitions, navigation, URL structure
+- Client-side authentication (tokens, session storage)
+- Accessibility compliance, keyboard navigation
+- Unit and integration tests for client code
+
+**Out of scope (redirect to correct agent or scope):**
+- Database schemas, migrations, queries - belongs to backend/DB
+- API endpoint definitions - belongs to backend/API
+- Server-side authentication logic - belongs to backend/AUTH
+- Business rules and server-side processing - belongs to backend/LOGIC
+- Shared types crossing client/backend boundary - propose CONTRACTS change
+- Infrastructure, deployment, environment config - belongs to CLOUD agent
+
+If a task crosses into out-of-scope territory, apply the Scope Mismatch Protocol from root CLAUDE.md.
+
+---
+
 ## Scaffolding Into Existing Directories
 
 When initializing a framework into `client/`, the directory already contains
