@@ -897,7 +897,8 @@ const main = async () => {
     const res = await prompts({
       type:    'text',
       name:    'value',
-      message: defaultTask ? `* Task description (${agent} agent) - e.g. "${defaultTask}"` : `* Task description (${agent} agent)`,
+      message: `* Task description (${agent} agent)`,
+      initial: defaultTask ? `e.g. ${defaultTask}` : '',
     }, { onCancel: () => process.exit(0) });
 
     if (res.value === undefined) continue flowLoop; // Esc = back
