@@ -902,7 +902,9 @@ const main = async () => {
     }, { onCancel: () => process.exit(0) });
 
     if (res.value === undefined) continue flowLoop; // Esc = back
-    task = res.value || defaultTask;
+    const rawValue = (res.value || '').trim();
+    const isPlaceholder = rawValue.startsWith('e.g. ') && rawValue === `e.g. ${defaultTask}`;
+    task = isPlaceholder ? defaultTask : (rawValue || defaultTask);
     if (!task) task = defaultTask;
   } else {
     let goBackToAgent = false;
