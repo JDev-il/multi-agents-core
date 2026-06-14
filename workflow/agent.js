@@ -1146,6 +1146,7 @@ ${excludedUrls}
     scripts: {
       init:     'multi-agents init',
       agent:    'node .workflow/agent.js',
+      reset:    'node .workflow/reset.js',
       complete: 'node .workflow/complete.js',
     },
   };
