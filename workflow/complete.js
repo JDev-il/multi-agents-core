@@ -322,8 +322,23 @@ const main = async () => {
   // ── Done ──────────────────────────────────────────────────────────────────────
 
   separator();
+  // Derive agent and scope for summary
+  const _parts = branchName.split('/');
+  const _scope = _parts.length >= 4 ? _parts[1] : '';
+  const _agent = _parts.length >= 4 ? _parts[2].toUpperCase() : '';
+
+  // Read task from TASK.md if available
+  let _task = '';
+  try {
+    const taskMd = fs.readFileSync(path.join(worktreePath, 'TASK.md'), 'utf8');
+    const taskMatch = taskMd.match(/^## Task\n.*?Use\.agents\/.*?\. Task: (.+)$/m);
+    if (taskMatch) _task = taskMatch[1].trim();
+  } catch {}
+
   console.log(`\n${bold(green('  Task completed successfully!'))}\n`);
-  console.log(`  ${dim('Branch')} ${green(branchName)} merged into ${green('main')}\n`);
+  if (_agent) console.log(`  ${dim('Agent')}  : ${green(_agent)} ${dim('(' + _scope + ')')}`);
+  if (_task)  console.log(`  ${dim('Task')}   : ${dim(_task)}`);
+  console.log(`  ${dim('Branch')} : ${green(branchName)} merged into ${green('main')}\n`);
   console.log(`  ${bold('What to do next:')}\n`);
   console.log(`  Start a new task:`);
   console.log(`  ${cyan('npm run agent')}\n`);
