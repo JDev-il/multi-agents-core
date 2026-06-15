@@ -231,6 +231,25 @@ const SCAFFOLD_REQUIRED = ['LOGIC', 'FORMS', 'ROUTING', 'TESTING', 'ACCESSIBILIT
 // Agents that depend on shared contracts (CONTRACTS.md)
 const CONTRACTS_REQUIRED = ['LOGIC', 'AUTH', 'API', 'FORMS'];
 
+// ── CLOUD prereq evaluator ────────────────────────────────────────────────────
+
+const evalCloudPrereqs = (entries) => {
+  const bt          = config.backend?.type;
+  const clientUI    = entries.find(e => e.scope === 'client'  && e.agent === 'UI'    && e.status === 'COMPLETED');
+  const clientLogic = entries.find(e => e.scope === 'client'  && e.agent === 'LOGIC' && e.status === 'COMPLETED');
+  const backendAPI  = entries.find(e => e.scope === 'backend' && e.agent === 'API'   && e.status === 'COMPLETED');
+  const isClientOnly  = !bt || bt === 'integrated';
+  const isBackendOnly = bt === 'separate' && !clientUI;
+
+  const prereqMet = isClientOnly
+    ? !!(clientUI && clientLogic)
+    : isBackendOnly
+      ? !!backendAPI
+      : !!(clientUI && clientLogic && backendAPI);
+
+  return { prereqMet, clientUI, clientLogic, backendAPI, isClientOnly, isBackendOnly };
+};
+
 // Prerequisite agents that must be COMPLETED before an agent can run
 const AGENT_PREREQUISITES = {
   client: {
@@ -350,6 +369,14 @@ const buildScopeOptions = () => {
   }
 
   options.push({ name: 'shared', label: 'shared' });
+
+  // CLOUD appears only when prerequisites are met
+  const rawEntries  = parseBuildState();
+  const { prereqMet } = evalCloudPrereqs(rawEntries);
+  if (prereqMet && config.cloudDeployment !== 'skipped') {
+    options.push({ name: 'cloud', label: `${cyan('☁ cloud')}   ${dim('deploy to production')}` });
+  }
+
   return options;
 };
 
@@ -406,7 +433,7 @@ const displayProjectStatus = (entries, contracts) => {
 
   if (!cloudSkipped) {
     if (cloudPrereqMet) {
-      console.log(`  ${bold('☁ cloud')}    ${yellow('available - gaps detected')}  ${dim('|')}  ${dim('select CLOUD agent to review')}`);
+      console.log(`  ${bold('☁ cloud')}    ${green('✓ ready to deploy')}  ${dim('|')}  ${dim('select CLOUD to begin')}`);
     } else {
       console.log(`  ${dim('☁ cloud')}    ${dim('available after more of your project is built')}`);
     }
@@ -651,6 +678,37 @@ Action   : <what the agent did - proceeded / redirected / flagged>
 `;
 };
 
+// ── CLOUD readiness table ─────────────────────────────────────────────────────
+
+const displayCloudReadiness = (entries) => {
+  const { clientUI, clientLogic, backendAPI, isClientOnly, isBackendOnly } = evalCloudPrereqs(entries);
+  const bt = config.backend?.type;
+
+  const cloudStatePath = path.join(ROOT, 'CLOUD_STATE.md');
+  const hasCloudState  = fs.existsSync(cloudStatePath);
+
+  const row = (label, done, detail = '') => {
+    const icon   = done ? green('✓') : red('✗');
+    const status = done ? green('DONE') : red('REQUIRED');
+    const note   = detail ? dim(`  ${detail}`) : '';
+    console.log(`  ${icon}  ${bold(label.padEnd(22))}${status}${note}`);
+  };
+
+  separator();
+  console.log(`\n${bold('☁  Cloud Readiness')} ${dim('-')} ${bold(config.projectName)}\n`);
+
+  if (!isBackendOnly) {
+    row('client / UI',    !!clientUI,    clientUI    ? '' : 'complete client/UI first');
+    row('client / LOGIC', !!clientLogic, clientLogic ? '' : 'complete client/LOGIC first');
+  }
+  if (!isClientOnly) {
+    row('backend / API',  !!backendAPI,  backendAPI  ? '' : 'complete backend/API first');
+  }
+  row('CLOUD_STATE.md', hasCloudState, hasCloudState ? '' : 'run npm run init or create manually');
+
+  console.log('');
+};
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 const main = async () => {
@@ -698,6 +756,21 @@ const main = async () => {
     return;
   }
 
+  // ── CLOUD scope - single agent, show readiness table then go straight to task
+  if (project === 'cloud') {
+    displayCloudReadiness(buildEntries);
+    const { prereqMet } = evalCloudPrereqs(buildEntries);
+    if (!prereqMet) {
+      console.log(`${red('  Prerequisites not met.')} ${dim('Complete the required agents above first.\n')}`);
+      rl.close();
+      return;
+    }
+    const confirmCloud = await arrowConfirm('All prerequisites met - proceed with CLOUD deployment?', rl);
+    if (!confirmCloud) continue flowLoop;
+    agent = 'CLOUD';
+    // Skip agent sub-selection entirely - fall through to task description
+  }
+
   // Soft gate - backend selected but missing prerequisites
   if (project === 'backend') {
     const clientCompleted = buildEntries.filter(e => e.scope === 'client' && e.status === 'COMPLETED');
@@ -729,9 +802,10 @@ const main = async () => {
 
   // ── Select agent (with re-selection loop + back to scope) ────────────────────
 
-  const agentOptions = AGENTS[project];
+  const agentOptions = AGENTS[project] || [];
   contractsNote = '';
 
+  if (project !== 'cloud') {
   agentLoop: while (true) {
     console.log('');
 
@@ -909,6 +983,7 @@ const main = async () => {
 
   break agentLoop;
   } // end agentLoop
+  } // end if (project !== 'cloud')
 
   // ── Task description ──────────────────────────────────────────────────────────
 
@@ -1274,9 +1349,7 @@ ${excludedUrls}
   console.log(`  ${bold('2.')} ${bold(yellow('Open a NEW session in Claude Code CLI or Claude Code Extension - and type go or start to initiate'))}`);
   console.log(dim('     Do NOT reuse a previous session.\n'));
   console.log(`  ${bold('3.')} Start the session and let the agent run.\n`);
-  console.log(`  ${bold('4.')} When the agent completes the task:`);
-  console.log(dim('     Check off the Definition of Done items in TASK.md.'));
-  console.log(dim('     Mark status as COMPLETED before starting the next task.\n'));
+  console.log(dim('     The agent will run `') + cyan('npm run complete') + dim('` autonomously when the task is done.\n'));
   separator();
   console.log('');
 
