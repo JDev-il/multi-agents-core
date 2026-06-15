@@ -1077,6 +1077,16 @@ const main = async () => {
     contextSection += `\n---\n\n## Contracts Instruction\n\n${contractsNote}\n`;
   }
 
+  // Inject wiring.config.json for agents that need it
+  const WIRING_AGENTS = ['INIT', 'API', 'LOGIC', 'CLOUD'];
+  if (WIRING_AGENTS.includes(agent)) {
+    const wiringPath = path.join(ROOT, 'shared', 'wiring.config.json');
+    if (fs.existsSync(wiringPath)) {
+      const wiringContent = fs.readFileSync(wiringPath, 'utf8');
+      contextSection += `\n---\n\n## Wiring Config\n\n\`\`\`json\n${wiringContent}\n\`\`\`\n\nThis is the agreed variable naming contract for client\u2194backend wiring. Read before implementing any environment config, API calls, or deployment steps.\n`;
+    }
+  }
+
   separator();
 
   // ── Confirm ───────────────────────────────────────────────────────────────────
