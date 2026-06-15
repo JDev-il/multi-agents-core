@@ -52,11 +52,11 @@ const tracking = fs.existsSync(TRACKING_PATH)
 const ENTRY_CWD = process.cwd();
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const INIT_AGENTS = { client: ['UI'], backend: ['API'] };
+const INIT_AGENTS = { client: ['UI'], backend: ['INIT'] };
 
 const DEPENDENCIES = {
   client:  { UI: ['LOGIC', 'FORMS', 'ROUTING', 'TESTING', 'ACCESSIBILITY'] },
-  backend: { API: ['LOGIC', 'AUTH', 'DB', 'EVENTS', 'JOBS', 'TESTING'] },
+  backend: { INIT: ['API', 'LOGIC', 'AUTH', 'DB', 'EVENTS', 'JOBS', 'TESTING'] },
   shared:  {},
 };
 

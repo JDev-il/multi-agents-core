@@ -71,6 +71,7 @@ const generateTrackingStructure = (config) => {
 
   if (bt === 'separate') {
     structure.backend = {
+      INIT:    emptySlot(),
       API:     emptySlot(),
       LOGIC:   emptySlot(),
       AUTH:    emptySlot(),

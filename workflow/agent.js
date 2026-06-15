@@ -173,7 +173,7 @@ const openIDE = (worktreePath) => {
 
 const AGENTS = {
   client:  ['UI', 'LOGIC', 'FORMS', 'ROUTING', 'TESTING', 'ACCESSIBILITY'],
-  backend: ['API', 'LOGIC', 'AUTH', 'DB', 'TESTING', 'EVENTS', 'JOBS'],
+  backend: ['INIT', 'API', 'LOGIC', 'AUTH', 'DB', 'TESTING', 'EVENTS', 'JOBS'],
   shared:  ['SECURITY'],
 };
 
@@ -188,6 +188,7 @@ const AGENT_DESCRIPTIONS = {
     ACCESSIBILITY: 'a11y compliance, keyboard navigation',
   },
   backend: {
+    INIT:    'scaffolds backend architecture, folder structure, DB setup, wiring config and contracts',
     API:     'REST/GraphQL endpoints, request/response handling',
     LOGIC:   'business logic, services, data processing',
     AUTH:    'authentication, authorization, session management',
@@ -212,7 +213,8 @@ const AGENT_TASK_SUFFIX = {
     ACCESSIBILITY: ' - implement ARIA attributes, keyboard navigation, and semantic HTML ONLY. No visual redesign. No business logic changes.',
   },
   backend: {
-    API:     ' - read CONTRACTS.md first and treat it as the binding interface contract before implementing anything. Implement route handlers, controllers, and DTOs ONLY. No business logic services. No auth middleware. No database queries.',
+    INIT:    ' - scaffold the backend architecture ONLY. Decide folder structure, MVC/service pattern, DB connection setup, and framework configuration. Bootstrap CONTRACTS.md with initial shared types. Write wiring.config.json backend section with all required runtime vars per environment. No endpoint implementation. No business logic.',
+    API:     ' - read CONTRACTS.md and wiring.config.json first as binding contracts before implementing anything. Implement route handlers, controllers, and DTOs ONLY. No business logic services. No auth middleware. No database queries. No architectural changes.',
     LOGIC:   ' - implement services and business logic ONLY. No route definitions. No auth middleware. No database schema changes.',
     AUTH:    ' - implement authentication and authorization ONLY. No business logic. No database schema changes. No API route restructuring.',
     DB:      ' - implement database schema, migrations, and queries ONLY. No business logic. No API handlers. No auth.',
@@ -226,10 +228,10 @@ const AGENT_TASK_SUFFIX = {
 };
 
 // Agents that require an existing scope scaffold before they can run
-const SCAFFOLD_REQUIRED = ['LOGIC', 'FORMS', 'ROUTING', 'TESTING', 'ACCESSIBILITY', 'AUTH', 'DB', 'EVENTS', 'JOBS'];
+const SCAFFOLD_REQUIRED = ['LOGIC', 'FORMS', 'ROUTING', 'TESTING', 'ACCESSIBILITY', 'API', 'AUTH', 'DB', 'EVENTS', 'JOBS'];
 
 // Agents that depend on shared contracts (CONTRACTS.md)
-const CONTRACTS_REQUIRED = ['LOGIC', 'AUTH', 'API', 'FORMS'];
+const CONTRACTS_REQUIRED = ['LOGIC', 'AUTH', 'API', 'FORMS', 'INIT'];
 
 // ── CLOUD prereq evaluator ────────────────────────────────────────────────────
 
@@ -237,17 +239,17 @@ const evalCloudPrereqs = (entries) => {
   const bt          = config.backend?.type;
   const clientUI    = entries.find(e => e.scope === 'client'  && e.agent === 'UI'    && e.status === 'COMPLETED');
   const clientLogic = entries.find(e => e.scope === 'client'  && e.agent === 'LOGIC' && e.status === 'COMPLETED');
-  const backendAPI  = entries.find(e => e.scope === 'backend' && e.agent === 'API'   && e.status === 'COMPLETED');
+  const backendINIT = entries.find(e => e.scope === 'backend' && e.agent === 'INIT'  && e.status === 'COMPLETED');
   const isClientOnly  = !bt || bt === 'integrated';
   const isBackendOnly = bt === 'separate' && !clientUI;
 
   const prereqMet = isClientOnly
     ? !!(clientUI && clientLogic)
     : isBackendOnly
-      ? !!backendAPI
-      : !!(clientUI && clientLogic && backendAPI);
+      ? !!backendINIT
+      : !!(clientUI && clientLogic && backendINIT);
 
-  return { prereqMet, clientUI, clientLogic, backendAPI, isClientOnly, isBackendOnly };
+  return { prereqMet, clientUI, clientLogic, backendINIT, isClientOnly, isBackendOnly };
 };
 
 // Prerequisite agents that must be COMPLETED before an agent can run
@@ -260,11 +262,13 @@ const AGENT_PREREQUISITES = {
     ACCESSIBILITY: ['UI'],
   },
   backend: {
-    LOGIC:         ['DB'],
-    AUTH:          ['LOGIC'],
-    EVENTS:        ['API'],
-    JOBS:          ['DB'],
-    TESTING:       ['API', 'LOGIC'],
+    API:           ['INIT'],
+    LOGIC:         ['INIT', 'DB'],
+    AUTH:          ['INIT', 'LOGIC'],
+    DB:            ['INIT'],
+    EVENTS:        ['INIT', 'API'],
+    JOBS:          ['INIT', 'DB'],
+    TESTING:       ['INIT', 'API', 'LOGIC'],
   },
 };
 
@@ -419,15 +423,15 @@ const displayProjectStatus = (entries, contracts) => {
   // ── Cloud status ───────────────────────────────────────────────────────────
   const clientUI    = entries.find(e => e.scope === 'client'  && e.agent === 'UI'    && e.status === 'COMPLETED');
   const clientLogic = entries.find(e => e.scope === 'client'  && e.agent === 'LOGIC' && e.status === 'COMPLETED');
-  const backendAPI  = entries.find(e => e.scope === 'backend' && e.agent === 'API'   && e.status === 'COMPLETED');
+  const backendINIT = entries.find(e => e.scope === 'backend' && e.agent === 'INIT'  && e.status === 'COMPLETED');
   const isClientOnly  = !bt || bt === 'integrated';
   const isBackendOnly = bt === 'separate' && !clientUI;
 
   const cloudPrereqMet = isClientOnly
     ? (clientUI && clientLogic)
     : isBackendOnly
-      ? backendAPI
-      : (clientUI && clientLogic && backendAPI);
+      ? backendINIT
+      : (clientUI && clientLogic && backendINIT);
 
   const cloudSkipped = config.cloudDeployment === 'skipped';
 
@@ -681,7 +685,7 @@ Action   : <what the agent did - proceeded / redirected / flagged>
 // ── CLOUD readiness table ─────────────────────────────────────────────────────
 
 const displayCloudReadiness = (entries) => {
-  const { clientUI, clientLogic, backendAPI, isClientOnly, isBackendOnly } = evalCloudPrereqs(entries);
+  const { clientUI, clientLogic, backendINIT, isClientOnly, isBackendOnly } = evalCloudPrereqs(entries);
   const bt = config.backend?.type;
 
   const cloudStatePath = path.join(ROOT, 'CLOUD_STATE.md');
@@ -702,7 +706,7 @@ const displayCloudReadiness = (entries) => {
     row('client / LOGIC', !!clientLogic, clientLogic ? '' : 'complete client/LOGIC first');
   }
   if (!isClientOnly) {
-    row('backend / API',  !!backendAPI,  backendAPI  ? '' : 'complete backend/API first');
+    row('backend / INIT', !!backendINIT, backendINIT ? '' : 'complete backend/INIT first');
   }
   row('CLOUD_STATE.md', hasCloudState, hasCloudState ? '' : 'run npm run init or create manually');
 
@@ -944,7 +948,7 @@ const main = async () => {
     if (scopeCompleted.length === 0) {
       console.log(`\n${red(`  ✗ ${agent} requires an existing ${project} scaffold.`)}`);
       console.log(dim(`  No completed work found in ${project} scope yet.`));
-      console.log(dim(`  Tip: start with the UI agent to scaffold the project first.\n`));
+      console.log(dim(`  Tip: start with the INIT agent to scaffold the backend first, or UI agent for the client.\n`));
       const repick = await arrowConfirm('Pick a different agent?', rl);
       if (repick) continue agentLoop;
       console.log(yellow('\n  Aborted.\n')); rl.close(); return;
