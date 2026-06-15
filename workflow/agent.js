@@ -733,6 +733,10 @@ const main = async () => {
 
   // ── Flow loop - supports back navigation at every step ───────────────────────
 
+  // ── CLI args - allow restart.js to pre-scope ────────────────────────────────
+  const argScope = process.argv.find(a => a.startsWith('--scope='))?.split('=')[1]?.toLowerCase();
+  const argAgent = process.argv.find(a => a.startsWith('--agent='))?.split('=')[1]?.toUpperCase();
+
   let project, agent, task, contractsNote;
   let timestamp, sanitizedName, worktreeName, branchName, worktreePath;
   let contextSection = '';
@@ -742,11 +746,15 @@ const main = async () => {
   // ── Select scope ─────────────────────────────────────────────────────────────
 
   const scopeOptions = buildScopeOptions();
-  console.log(`\n${bold('* Project scope:')}`);
-  const scopeIdx = await arrowSelect('Select scope', scopeOptions.map(s => ({ label: s.label || s.name })), rl);
-  const selectedScope = scopeOptions[scopeIdx];
 
-  project = selectedScope.name || selectedScope;
+  if (argScope && scopeOptions.find(s => s.name === argScope)) {
+    project = argScope;
+  } else {
+    console.log(`\n${bold('* Project scope:')}`);
+    const scopeIdx = await arrowSelect('Select scope', scopeOptions.map(s => ({ label: s.label || s.name })), rl);
+    const selectedScope = scopeOptions[scopeIdx];
+    project = selectedScope.name || selectedScope;
+  }
 
   // Hard stop - backend not configured
   if (selectedScope.needsConfig) {
@@ -806,6 +814,10 @@ const main = async () => {
   contractsNote = '';
 
   if (project !== 'cloud') {
+  // Pre-scoped from restart.js
+  if (argAgent && (AGENTS[project] || []).includes(argAgent)) {
+    agent = argAgent;
+  } else {
   agentLoop: while (true) {
     console.log('');
 
@@ -983,6 +995,7 @@ const main = async () => {
 
   break agentLoop;
   } // end agentLoop
+  } // end else (argAgent bypass)
   } // end if (project !== 'cloud')
 
   // ── Task description ──────────────────────────────────────────────────────────
