@@ -93,10 +93,20 @@ I'll handle them in order before proceeding with deployment.
 Type yes to confirm and begin, or no to cancel.
 ```
 
-If the user types no - stop cleanly:
+If the user types no or anything other than yes - present:
 ```
-Understood. Run npm run agent and select the CLOUD agent when you're ready to proceed.
+How would you like me to proceed?
+
+  1. Continue building - I'll address cloud gaps later
+  2. Skip cloud for now - don't show this again this session
+  3. Skip cloud entirely - remove cloud from future sessions
+
+Type 1, 2, or 3 to choose.
 ```
+
+- Option 1: stop, user continues building, cloud stays visible next session
+- Option 2: stop, cloud skipped for this session only
+- Option 3: stop, write cloudDeployment: skipped to .scaffold/.config.json, cloud removed from future Project Status
 
 If the user types yes - proceed to Step 4.
 
