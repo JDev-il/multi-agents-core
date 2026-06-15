@@ -751,12 +751,14 @@ const main = async () => {
 
   const scopeOptions = buildScopeOptions();
 
+  let selectedScope;
   if (argScope && scopeOptions.find(s => s.name === argScope)) {
+    selectedScope = scopeOptions.find(s => s.name === argScope);
     project = argScope;
   } else {
     console.log(`\n${bold('* Project scope:')}`);
     const scopeIdx = await arrowSelect('Select scope', scopeOptions.map(s => ({ label: s.label || s.name })), rl);
-    const selectedScope = scopeOptions[scopeIdx];
+    selectedScope = scopeOptions[scopeIdx];
     project = selectedScope.name || selectedScope;
   }
 
