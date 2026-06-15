@@ -28,6 +28,7 @@
 ├── backend/                  # @project - remove or rename if not applicable
 │   ├── CLAUDE.md             ← auto-loaded when in backend/ worktree
 │   └── agents/
+│       ├── INIT.md           # @agent
 │       ├── API.md            # @agent
 │       ├── LOGIC.md          # @agent
 │       ├── AUTH.md           # @agent
@@ -164,12 +165,13 @@ predecessor agents for your scope have `COMPLETED` status.
 | `client / TESTING` | `client / UI` + `client / LOGIC` |
 | `client / ACCESSIBILITY` | `client / UI` |
 | `backend / DB` | — (entry point, no prerequisites) |
-| `backend / API` | — (no hard prerequisites) |
+| `backend / INIT` | — (entry point, no prerequisites) |
+| `backend / API` | `backend / INIT` |
 | `backend / LOGIC` | `backend / DB` |
 | `backend / AUTH` | `backend / LOGIC` |
-| `backend / EVENTS` | `backend / API` |
+| `backend / EVENTS` | `backend / INIT` + `backend / API` |
 | `backend / JOBS` | `backend / DB` |
-| `backend / TESTING` | `backend / API` + `backend / LOGIC` |
+| `backend / TESTING` | `backend / INIT` + `backend / API` + `backend / LOGIC` |
 | `shared / SECURITY` | — (no hard prerequisites) |
 
 If a required predecessor is missing or `IN PROGRESS`:

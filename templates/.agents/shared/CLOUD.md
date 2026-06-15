@@ -24,8 +24,8 @@ Before this agent can be selected, the following must be completed in BUILD_STAT
 | Project type    | Minimum required                          |
 |-----------------|-------------------------------------------|
 | Client-only     | client/UI + client/LOGIC                  |
-| Backend-only    | backend/API                               |
-| Full stack      | client/UI + client/LOGIC + backend/API    |
+| Backend-only    | backend/INIT                              |
+| Full stack      | client/UI + client/LOGIC + backend/INIT   |
 
 If prerequisites are not met, surface this clearly and stop.
 
@@ -69,7 +69,7 @@ Derive each row from config and build state:
 | Styling       | config.client.styling           | always Ready if set                 |
 | UI Library    | config.client.uiLibrary         | always Ready if set                 |
 | State         | config.client.state             | always Ready if set                 |
-| Backend       | config.backend.framework        | API completed                       |
+| Backend       | config.backend.framework        | INIT completed                      |
 | ORM           | config.backend.orm              | Warning - requires cloud DB config  |
 | Auth          | config.backend.auth             | Warning - requires secrets mgmt     |
 | Database      | config.backend.orm              | Critical if no DB engine configured |
@@ -208,6 +208,7 @@ If CLOUD_STATE.md is missing or corrupt:
 - Application source code changes - belongs to respective agents
 - Database schema changes - belongs to backend/DB agent
 - API endpoint changes - belongs to backend/API agent
+- Backend scaffolding - belongs to backend/INIT agent
 - UI component changes - belongs to client/UI agent
 - Business logic changes - belongs to client/LOGIC or backend/LOGIC
 

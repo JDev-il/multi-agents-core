@@ -171,6 +171,7 @@ Awaiting  : confirmation it exists in the environment
 
 **In scope (backend agents own these):**
 - Database schemas, migrations, entities, queries
+- Backend architecture, folder structure, DB setup, wiring config - belongs to backend/INIT
 - API endpoint definitions, request/response handling
 - Server-side authentication, authorization, sessions
 - Business logic, services, data processing
