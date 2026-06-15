@@ -1278,6 +1278,7 @@ ${excludedUrls}
     scripts: {
       init:     'multi-agents init',
       agent:    'node .workflow/agent.js',
+      restart:  'node .workflow/restart.js',
       reset:    'node .workflow/reset.js',
       complete: 'node .workflow/complete.js',
     },
