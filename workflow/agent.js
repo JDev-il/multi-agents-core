@@ -212,7 +212,7 @@ const AGENT_TASK_SUFFIX = {
     ACCESSIBILITY: ' - implement ARIA attributes, keyboard navigation, and semantic HTML ONLY. No visual redesign. No business logic changes.',
   },
   backend: {
-    API:     ' - implement route handlers, controllers, and DTOs ONLY. No business logic services. No auth middleware. No database queries.',
+    API:     ' - read CONTRACTS.md first and treat it as the binding interface contract before implementing anything. Implement route handlers, controllers, and DTOs ONLY. No business logic services. No auth middleware. No database queries.',
     LOGIC:   ' - implement services and business logic ONLY. No route definitions. No auth middleware. No database schema changes.',
     AUTH:    ' - implement authentication and authorization ONLY. No business logic. No database schema changes. No API route restructuring.',
     DB:      ' - implement database schema, migrations, and queries ONLY. No business logic. No API handlers. No auth.',
