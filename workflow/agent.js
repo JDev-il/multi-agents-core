@@ -389,6 +389,29 @@ const displayProjectStatus = (entries, contracts) => {
     console.log(`  ${bold('backend')}   ${beStatus}${ormsNote}`);
   }
 
+  // ── Cloud status ───────────────────────────────────────────────────────────
+  const clientUI    = entries.find(e => e.scope === 'client'  && e.agent === 'UI'    && e.status === 'COMPLETED');
+  const clientLogic = entries.find(e => e.scope === 'client'  && e.agent === 'LOGIC' && e.status === 'COMPLETED');
+  const backendAPI  = entries.find(e => e.scope === 'backend' && e.agent === 'API'   && e.status === 'COMPLETED');
+  const isClientOnly  = !bt || bt === 'integrated';
+  const isBackendOnly = bt === 'separate' && !clientUI;
+
+  const cloudPrereqMet = isClientOnly
+    ? (clientUI && clientLogic)
+    : isBackendOnly
+      ? backendAPI
+      : (clientUI && clientLogic && backendAPI);
+
+  const cloudSkipped = config.cloudDeployment === 'skipped';
+
+  if (!cloudSkipped) {
+    if (cloudPrereqMet) {
+      console.log(`  ${bold('☁ cloud')}    ${yellow('available - gaps detected')}  ${dim('|')}  ${dim('select CLOUD agent to review')}`);
+    } else {
+      console.log(`  ${dim('☁ cloud')}    ${dim('available after more of your project is built')}`);
+    }
+  }
+
   console.log('');
 };
 
