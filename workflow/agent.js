@@ -1370,6 +1370,18 @@ ${excludedUrls}
     console.log(dim(`     Open manually at: ${worktreePath}`));
   }
 
+  // ── Launch Claude Code CLI ──────────────────────────────────────────────────
+
+  let claudeLaunched = false;
+  try {
+    const { spawn: sp } = require('child_process');
+    const claudeProc = sp('claude', [], { cwd: worktreePath, stdio: 'inherit', detached: false });
+    claudeProc.on('error', () => {});
+    claudeLaunched = true;
+  } catch {}
+
+  if (claudeLaunched) { rl.close(); return; }
+
   // ── Next steps ────────────────────────────────────────────────────────────────
 
   separator();
